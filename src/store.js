@@ -1,8 +1,10 @@
-userData = {
+import { writable } from "svelte/store";
+
+export const userData = writable({
     properties: [
       {
         name: "Engineering and Computer Science West",
-        picture: "",
+        picture: "ecsw.jpg",
         address: "800 W. Campbell Road, Richardson, Texas",
         "sq-ft": 200000,
         value: 110000000,
@@ -147,10 +149,7 @@ userData = {
           },
         ],
         "built-date": "1995-10-20",
-        "defect-log": [],
         features: [],
-        "property-notes": [],
-        "renovation-log": [],
         roof: {
           type: "Pitched Roof",
           condition: "Excellent",
@@ -244,7 +243,6 @@ userData = {
           },
         ],
         "built-date": "2010-08-15",
-        "defect-log": [],
         features: [
           {
             name: "Gym",
@@ -357,7 +355,6 @@ userData = {
           },
         ],
         "built-date": "2012-03-18",
-        "defect-log": [],
         features: [
           {
             name: "Fitness Center",
@@ -380,7 +377,6 @@ userData = {
             note: "Completed interior redesign",
           },
         ],
-        "renovation-log": [],
         roof: {
           type: "Flat Roof",
           condition: "Good",
@@ -423,7 +419,6 @@ userData = {
             description: "Multiple loading bays for shipping",
           },
         ],
-        "property-notes": [],
         "renovation-log": [
           {
             description: "Factory Floor Expansion",
@@ -444,5 +439,6 @@ userData = {
         },
       },
     ],
-  };
+  }
+  );
   
