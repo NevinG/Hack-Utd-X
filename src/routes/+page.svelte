@@ -1,2 +1,123 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script>
+    // Import the functions you need from the SDKs you need
+    import { goto } from '$app/navigation';
+    import {signInWithPopup , signInWithEmailAndPassword} from 'firebase/auth';
+
+    import { auth, provider } from '../util.js';
+
+    
+    let uid = ""
+    let loggedIn = false;
+    let authToken = "";
+    let signUpPage = false;
+    let email = "";
+    let password = "";    
+
+    auth.onAuthStateChanged(async (user) => {
+		loggedIn = user ? true : false;
+		if (loggedIn) {
+			uid = user.uid;
+			if (authToken == '') {
+				await fetchAuthToken();
+			}
+			goto('/dashboard');
+		} else {
+			uid = undefined;
+			authToken = '';
+		}
+	});
+
+	async function fetchAuthToken() {
+		if (auth.currentUser) {
+			const at = await auth.currentUser.getIdToken(true);
+			authToken = at;
+		}
+	}
+    
+    function userpassLogin(){
+        signInWithEmailAndPassword(auth, email, password);
+		fetchAuthToken();
+    }
+
+    function googleLogin(){
+        console.log("clicked")
+        console.log(auth)
+        signInWithPopup(auth, provider);
+		fetchAuthToken();
+    }
+
+</script>
+
+<h1>Title</h1>
+<div id="parent">
+	{#if signUpPage}
+		<div class="kid">
+			<a
+				href="./"
+				on:click={() => {
+					signUpPage = false;
+				}}>Return to other sign in options</a
+			>
+			<br />
+			<div class="signup-email"><input bind:value={email} placeholder="Email" /></div>
+			<br />
+			<input type="password" bind:value={password} placeholder="Password" />
+			<br />
+			<!-- <Button on:click={createUserWithEmailAndPassword(auth, email, password)}>Sign Up</Button> -->
+            <button>Sign Up</button>
+		</div>
+	{:else}
+		<div class="kid">
+			<input type="text" bind:value={email} placeholder="Email" />
+			<br />
+			<input type="password" bind:value={password} placeholder="Password" />
+			<br />
+			<p>Dont have account <a href="./" on:click={() => (signUpPage = true)}>Sign Up</a></p>
+			<br />
+			<button on:click={userpassLogin} kind="primary">Sign In</button>
+			<hr />
+			<div class="google">
+				<button on:click={googleLogin}>Continue With Google</button>
+			</div>
+		</div>
+	{/if}
+</div>
+
+<style>
+	.kid {
+		background-color: #022842;
+		padding: 4rem;
+		border-radius: 2rem;
+	}
+
+	p {
+		color: white;
+	}
+
+	hr {
+		margin-top: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	a {
+		font-size: large;
+		margin-bottom: 1rem;
+		color: #c4c9ff;
+	}
+
+	.google {
+		margin-bottom: 0.25rem;
+	}
+
+	#parent {
+		display: flex;
+		justify-content: center;
+	}
+    h1{
+        text-align: center;
+    }
+	.signup-email {
+		margin-top: 1rem;
+		margin-bottom: 0.25rem;
+	}
+</style>
