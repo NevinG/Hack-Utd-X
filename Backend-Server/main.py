@@ -131,8 +131,6 @@ def predict():
 
     return jsonify({"image": split_string[0] + "," + base64_img})
 
-
-
 # Load the data
 with open('ML/test.json') as f:
     data = json.load(f)
@@ -152,12 +150,21 @@ def conditionPrediction(data):
     labels = ['bad', 'poor', 'moderate', 'good', 'great']
     data['condition'] = pd.cut(data['condition'], bins=bins, labels=labels)
 
-    # Split the data into features and target
-    X = data.drop('condition', axis=1)
+    # Assume 'name' is a column in your data
+    if 'name' in data:
+        X = data.drop(['condition', 'name'], axis=1)  # Keep name out of features
+    else:
+        X = data.drop('condition', axis=1)  # No name in the data
+        print("Warning: 'name' column not found in the data.")
+
     y = data['condition']
 
     # Split the data into training and validation sets
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Keep the asset names for the validation set to pair with predictions
+    if 'name' in data:
+        names_val = data.loc[X_val.index, 'name']
 
     # Initialize the Decision Tree Classifier
     dt = DecisionTreeClassifier(max_depth=10)
@@ -172,13 +179,18 @@ def conditionPrediction(data):
     accuracy = accuracy_score(y_val, predictions)
     print(f'Validation Accuracy: {accuracy}')
 
-    return dt
+    # Pair each prediction with the corresponding asset name
+    if 'name' in data:
+        prediction_output = pd.DataFrame({
+            'Asset Name': names_val,
+            'Predicted Condition': predictions
+        })
+    else:
+        prediction_output = pd.DataFrame({
+            'Predicted Condition': predictions
+        })
 
-
-def conditionPrediction():
-    # Decision Tree
-    pass
-
+    return dt, prediction_output
 
 def valuePredictionOverTime():
     # Multiple Linear/Random Forest Regression
