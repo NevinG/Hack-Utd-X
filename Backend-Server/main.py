@@ -72,7 +72,6 @@ def predict_condition(property):
 
     # Convert the dictionary to a DataFrame
     property_df = pd.DataFrame([property])
-
     # Drop rows with missing values in specified columns
     property_df = property_df.dropna(subset=["built-date", "defect-log", "maintenance-log", "renovation-log", "roof", "condition"])
 
