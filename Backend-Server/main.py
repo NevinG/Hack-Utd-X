@@ -134,14 +134,25 @@ def predict():
     return jsonify({"image": split_string[0] + "," + base64_img})
 
 # Load the data
-with open('ML/test.json') as f:
-    data = json.load(f)
+def load_data_from_firestore(collection_name):
+    # Get a reference to the collection
+    collection_ref = db.collection(collection_name)
 
-df = pd.json_normalize(data)
+    # Get all the documents in the collection
+    docs = collection_ref.stream()
+
+    # Convert the documents into a list of dictionaries
+    data = [doc.to_dict() for doc in docs]
+
+    # Convert the list of dictionaries into a DataFrame
+    df = pd.DataFrame(data)
+
+    return df
 
 def conditionPrediction(data):
     # Decision Tree Algorithm
     # Preprocess the data
+    data = load_data_from_firestore("Collection_Name")
     data['built-date'] = pd.to_datetime(data['built-date']).astype(int) / 10**9
     data['defect-log'] = LabelEncoder().fit_transform(data['defect-log'])
     data['maintenance-log'] = LabelEncoder().fit_transform(data['maintenance-log'])
