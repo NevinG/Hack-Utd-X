@@ -3,10 +3,11 @@
 	import { auth, sampleProperty } from '../../util.js';
 	import { userData, userExists } from '../../store.js';
 	import { base } from '$app/paths';
+	import { page } from '$app/stores';
 
 	function logout() {
 		signOut(auth);
-		location.replace(base);
+		location.replace($page.url);
 	}
 </script>
 
