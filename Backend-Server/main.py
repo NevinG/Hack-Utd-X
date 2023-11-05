@@ -17,6 +17,9 @@ from flask import Flask, request, jsonify
 import openai
 from apikey import api_key
 from firebase_admin import credentials, firestore, auth
+from apikey import api_key, serpapi_key
+from collections import Counter
+import requests
 
 cred = credentials.Certificate("./authenticationKey.json")
 firebase_admin.initialize_app(cred)
@@ -38,6 +41,7 @@ def check_auth():
     uid = decoded_token["uid"]
     return uid
 
+
 def convert_to_timestamp(dates):
     # If the input is a Series, we can directly use it
     if isinstance(dates, pd.Series):
@@ -48,10 +52,12 @@ def convert_to_timestamp(dates):
         dates = [dates]
 
     # Convert to datetime, handling errors by returning NaT
-    date_series = pd.to_datetime(dates, errors='coerce', format='%m/%d/%Y')
+    date_series = pd.to_datetime(dates, errors="coerce", format="%m/%d/%Y")
 
     # Convert to UNIX timestamp, turning NaT into None
-    timestamps = date_series.map(lambda x: x.timestamp() if pd.notnull(x) else None).tolist()
+    timestamps = date_series.map(
+        lambda x: x.timestamp() if pd.notnull(x) else None
+    ).tolist()
 
     # If only one date was passed, return a single value instead of a list
     return timestamps[0] if len(timestamps) == 1 else timestamps
@@ -60,17 +66,23 @@ def convert_to_timestamp(dates):
 def predict_condition(property):
     # Fake data for training the model
     np.random.seed(42)  # For reproducibility
-    synthetic_data = pd.DataFrame({
-        'built-date': np.random.randint(1970, 2024, 100),  # Random year between 1970 and 2023
-        'defect-log': np.random.choice(['none', 'minor', 'major'], 100),
-        'maintenance-log': np.random.choice(['none', 'annual', 'biennial'], 100),
-        'renovation-log': np.random.choice(['none', 'recent', 'old'], 100),
-        'condition': np.random.choice(['bad', 'poor', 'moderate', 'good', 'great'], 100)
-    })
+    synthetic_data = pd.DataFrame(
+        {
+            "built-date": np.random.randint(
+                1970, 2024, 100
+            ),  # Random year between 1970 and 2023
+            "defect-log": np.random.choice(["none", "minor", "major"], 100),
+            "maintenance-log": np.random.choice(["none", "annual", "biennial"], 100),
+            "renovation-log": np.random.choice(["none", "recent", "old"], 100),
+            "condition": np.random.choice(
+                ["bad", "poor", "moderate", "good", "great"], 100
+            ),
+        }
+    )
 
     # Split the synthetic data
-    X = synthetic_data.drop('condition', axis=1)
-    y = synthetic_data['condition']
+    X = synthetic_data.drop("condition", axis=1)
+    y = synthetic_data["condition"]
 
     # Encode categorical data
     X = pd.get_dummies(X)
@@ -83,26 +95,41 @@ def predict_condition(property):
 
     # Prepare the property for prediction
     property_for_prediction = {
-        'built-date': [property.get('built-date', 1980)],  # Default to 1980 if not provided
-        'defect-log': [' '.join(entry.get('description', '') for entry in property.get('defect-log', []))],
-        'maintenance-log': [' '.join(entry.get('description', '') for entry in property.get('maintenance-log', []))],
-        'renovation-log': [' '.join(entry.get('description', '') for entry in property.get('renovation-log', []))],
+        "built-date": [
+            property.get("built-date", 1980)
+        ],  # Default to 1980 if not provided
+        "defect-log": [
+            " ".join(
+                entry.get("description", "") for entry in property.get("defect-log", [])
+            )
+        ],
+        "maintenance-log": [
+            " ".join(
+                entry.get("description", "")
+                for entry in property.get("maintenance-log", [])
+            )
+        ],
+        "renovation-log": [
+            " ".join(
+                entry.get("description", "")
+                for entry in property.get("renovation-log", [])
+            )
+        ],
     }
     property_df = pd.DataFrame(property_for_prediction)
     property_df = pd.get_dummies(property_df)
-    
+
     # Ensure all columns in the trained model are in the dataframe for prediction
     for col in X.columns:
         if col not in property_df:
             property_df[col] = 0
-    
+
     property_df = property_df.reindex(columns=X.columns, fill_value=0)
-    
+
     # Predict the condition
     prediction = dt.predict(property_df)
 
     return prediction[0]
-
 
 
 # You give it a property, it returns the correct value
@@ -110,17 +137,21 @@ def predict_condition(property):
 def predict_value_over_time(property):
     # Fake for training model
     np.random.seed(42)  # For reproducibility
-    synthetic_data = pd.DataFrame({
-        'built-date': np.random.randint(1970, 2024, 100),  # Random year between 1970 and 2023
-        'defect-log': np.random.choice(['none', 'minor', 'major'], 100),
-        'maintenance-log': np.random.choice(['none', 'annual', 'biennial'], 100),
-        'renovation-log': np.random.choice(['none', 'recent', 'old'], 100),
-        'value': np.random.randint(100000, 500000, 100) 
-    })
+    synthetic_data = pd.DataFrame(
+        {
+            "built-date": np.random.randint(
+                1970, 2024, 100
+            ),  # Random year between 1970 and 2023
+            "defect-log": np.random.choice(["none", "minor", "major"], 100),
+            "maintenance-log": np.random.choice(["none", "annual", "biennial"], 100),
+            "renovation-log": np.random.choice(["none", "recent", "old"], 100),
+            "value": np.random.randint(100000, 500000, 100),
+        }
+    )
 
     # Split the synthetic data
-    X = synthetic_data.drop('value', axis=1)
-    y = synthetic_data['value']
+    X = synthetic_data.drop("value", axis=1)
+    y = synthetic_data["value"]
 
     # Encode categorical data
     X = pd.get_dummies(X)
@@ -133,20 +164,36 @@ def predict_value_over_time(property):
 
     # Prepare the property for prediction
     property_for_prediction = {
-        'built-date': [property.get('built-date', 1980)],  # Default to 1980 if not provided
-        'defect-log': [' '.join(entry.get('description', '') for entry in property.get('defect-log', []))],
-        'maintenance-log': [' '.join(entry.get('description', '') for entry in property.get('maintenance-log', []))],
-        'renovation-log': [' '.join(entry.get('description', '') for entry in property.get('renovation-log', []))],
+        "built-date": [
+            property.get("built-date", 1980)
+        ],  # Default to 1980 if not provided
+        "defect-log": [
+            " ".join(
+                entry.get("description", "") for entry in property.get("defect-log", [])
+            )
+        ],
+        "maintenance-log": [
+            " ".join(
+                entry.get("description", "")
+                for entry in property.get("maintenance-log", [])
+            )
+        ],
+        "renovation-log": [
+            " ".join(
+                entry.get("description", "")
+                for entry in property.get("renovation-log", [])
+            )
+        ],
     }
     property_df = pd.DataFrame(property_for_prediction)
     property_df = pd.get_dummies(property_df)
-    
+
     # Ensure all columns in the trained model are in the dataframe for prediction
-   # Ensure all columns in the trained model are in the dataframe for prediction
+    # Ensure all columns in the trained model are in the dataframe for prediction
     for col in X.columns:
         if col not in property_df:
             property_df[col] = 0
-    
+
     property_df = property_df.reindex(columns=X.columns, fill_value=0)
     # Predict the value
     prediction = rf.predict(property_df)
@@ -173,7 +220,7 @@ def get_environmental_report(property):
             "role": "user",
             "content": f"The property has a size of {size} square feet and a value of {value}. It was built on {built_date}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. Generate a report based off of this context that accurately details the potential environmental impacts on this property.",
         }
-    ]    
+    ]
 
     # Generate the report using the GPT-3.5-Turbo model
     response = openai.ChatCompletion.create(
@@ -181,7 +228,6 @@ def get_environmental_report(property):
     )
 
     return {"message": response.choices[0].message.content.strip()}
-
 
 
 def get_narrative(property):
@@ -207,7 +253,7 @@ def get_narrative(property):
         model="gpt-4", messages=messages, temperature=0.5, max_tokens=500
     )
 
-    return {"message": response.choices[0]['message']['content']}
+    return {"message": response.choices[0]["message"]["content"]}
 
 
 # Checks if user is authenticated
@@ -264,7 +310,7 @@ def get_predict_condition():
         if isinstance(data, pd.DataFrame) or isinstance(data, pd.Series):
             return jsonify(data.to_json())
         else:
-        # handle cases where data is not a pandas object, perhaps it's a string message
+            # handle cases where data is not a pandas object, perhaps it's a string message
             return jsonify({"message": data})
 
     except Exception as error:
@@ -284,7 +330,7 @@ def get_predict_value_over_time():
         if isinstance(data, pd.DataFrame) or isinstance(data, pd.Series):
             return jsonify(data.to_json())
         else:
-        # handle cases where data is not a pandas object, perhaps it's a string message
+            # handle cases where data is not a pandas object, perhaps it's a string message
             return jsonify({"message": data})
 
     except Exception as error:
@@ -337,6 +383,7 @@ def predict():
 
     # Predict with the model
     results = model(img)  # predict on an image
+    labels = []
 
     # Draw bounding boxes on the image
     for result in results:
@@ -348,6 +395,7 @@ def predict():
                     img, (cords[0], cords[1]), (cords[2], cords[3]), (0, 255, 0), 2
                 )
                 class_id = result.names[box.cls[0].item()]
+                labels.append(class_id)
                 conf = round(box.conf[0].item(), 2)
                 cv2.putText(
                     img,
@@ -364,7 +412,19 @@ def predict():
     io_buf = io.BytesIO(buffer)
     base64_img = base64.b64encode(io_buf.getvalue()).decode("utf-8")
 
-    return jsonify({"image": split_string[0] + "," + base64_img})
+    return jsonify(
+        {"labels": Counter(labels), "image": split_string[0] + "," + base64_img}
+    )
+
+
+@app.route("/google_query", methods=["GET"])
+@cross_origin()
+def google_query():
+    query = request.query_string.decode()
+    res = requests.get(
+        "https://serpapi.com/search.json?api_key=" + serpapi_key + "&" + query
+    )
+    return res.text
 
 
 if __name__ == "__main__":
