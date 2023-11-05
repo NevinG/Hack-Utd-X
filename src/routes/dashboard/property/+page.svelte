@@ -16,8 +16,8 @@
 	let defectLogDropdown = false;
 	let rennovationLogDropdown = false;
 
-	let environmentalReport = '';
-	let narrative = '';
+	let environmentalReport = {};
+	let narrative = {};
 
 	let id;
 
@@ -27,8 +27,10 @@
 			alert('You need to call this route with a id query parameter');
 		}
 
-		environmentalReport = await getEnvironmentalReport($userData.properties[id])['message'];
-		narrative = await getNarrative($userData.properties[id])['message'];
+		environmentalReport = await getEnvironmentalReport($userData.properties[id]);
+		environmentalReport = environmentalReport['message'];
+		narrative = await getNarrative($userData.properties[id]);
+		narrative = narrative['message'];
 		//environmentalReport = await getEnvironmentalReport()['message'];
 		//environmentalReport = await getEnvironmentalReport()['message'];
 	});
@@ -296,10 +298,10 @@
 		<div>
 			<h1>Condition Report</h1>
 			<p>condition report contents (to be filled)</p>
-			<h1>Enviornment Report</h1>
-			<p>{environmentalReport}</p>
+			<h1>Environment Report</h1>
+			{environmentalReport}
 			<h1>Narrative</h1>
-			<p>{narrative}</p>
+			{narrative}
 		</div>
 		<button on:click={postData}>Save Data</button>
 	</div>
