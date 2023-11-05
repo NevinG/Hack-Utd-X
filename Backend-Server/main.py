@@ -10,6 +10,7 @@ from firebase_admin import credentials, firestore, auth
 cred = credentials.Certificate("./authenticationKey.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
+usersRef = db.collection("users")
 
 
 app = Flask(__name__)
@@ -29,13 +30,43 @@ def check_auth():
 @app.route('/user', methods=['GET'])
 @cross_origin()
 def get_user():
-    pass
+    uid = check_auth()
+    if uid == "":
+        return {"Error": "Error"}, 400
+    
+    try:
+        #for test just get and print a user
+        user = usersRef.document(uid).get()
+        if user.exists:
+            user = user.to_dict()
+            return {
+                "exists": True,
+                "user": user
+            }
+        else:
+            return {"exists": False}
+    
+    except Exception as error:
+        print(error)
+        return {"Error": "Error"}, 400
     
 
 @app.route('/user', methods=['POST', 'PUT'])
 @cross_origin()
 def post_user():
-    pass
+    #Add this line to all things
+    uid = check_auth()
+    if uid == "":
+        return {"Error": "Error"}, 400
+    try:
+        #check if user already exists
+        newUser = request.json
+        usersRef.document(uid).set(newUser)
+        return newUser
+    
+    except Exception as error:
+        print(error)
+        return {"Error": "Error"}, 400
 
 def conditionPrediction():
     # Decision Tree
@@ -50,4 +81,4 @@ def generateNarrative():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 3030)))

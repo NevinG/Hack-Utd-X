@@ -1,14 +1,13 @@
 <script>
     // Import the functions you need from the SDKs you need
     import { goto } from '$app/navigation';
-    import {signInWithPopup , signInWithEmailAndPassword} from 'firebase/auth';
+    import { signInWithPopup , signInWithEmailAndPassword } from 'firebase/auth';
 
     import { auth, provider } from '../util.js';
-
     
     let uid = ""
     let loggedIn = false;
-    let authToken = "";
+   
     let signUpPage = false;
     let email = "";
     let password = "";    
@@ -17,33 +16,18 @@
 		loggedIn = user ? true : false;
 		if (loggedIn) {
 			uid = user.uid;
-			if (authToken == '') {
-				await fetchAuthToken();
-			}
 			goto('/dashboard');
 		} else {
 			uid = undefined;
-			authToken = '';
 		}
 	});
-
-	async function fetchAuthToken() {
-		if (auth.currentUser) {
-			const at = await auth.currentUser.getIdToken(true);
-			authToken = at;
-		}
-	}
     
     function userpassLogin(){
         signInWithEmailAndPassword(auth, email, password);
-		fetchAuthToken();
     }
 
     function googleLogin(){
-        console.log("clicked")
-        console.log(auth)
         signInWithPopup(auth, provider);
-		fetchAuthToken();
     }
 
 </script>
