@@ -20,7 +20,7 @@ import openai
 
 from firebase_admin import credentials, firestore, auth
 
-cred = credentials.Certificate("/Users/jayeshpaluru/Hack-Utd-X/Backend-Server/authenticationKey.json")
+cred = credentials.Certificate("./authenticationKey.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 usersRef = db.collection("users")
@@ -44,17 +44,19 @@ def check_auth():
 # conditionPrediction
 def predict_condition(property):
     # Load the trained model
+    print("a")
     dt, _ = conditionPrediction(load_data_from_firestore("Collection_Name"))
-
+    print("b")
     # Preprocess the property
     property["built-date"] = pd.to_datetime(property["built-date"]).astype(int) / 10**9
     property["defect-log"] = LabelEncoder().fit_transform([property["defect-log"]])
     property["maintenance-log"] = LabelEncoder().fit_transform([property["maintenance-log"]])
     property["renovation-log"] = LabelEncoder().fit_transform([property["renovation-log"]])
     property["roof"] = LabelEncoder().fit_transform([property["roof"]])
-
+    print("c")
     # Predict the condition
     prediction = dt.predict([property])
+    print("d")
     return prediction[0]
 
 # You give it a property, it returns the correct value
@@ -197,8 +199,9 @@ def valuePredictionOverTime(data):
 
     return rf, prediction_output
 
+from apikey import api_key
 
-openai.api_key = "_____"
+openai.api_key = api_key
 
 
 def get_environmental_report(property):
@@ -337,7 +340,6 @@ def get_calculate_environmental_report():
         return {"Error": "Error"}, 400
     try:
         property = request.json
-        print(property)
         data = get_environmental_report(property)
         return data
 
@@ -354,7 +356,6 @@ def get_calculate_narrative():
         return {"Error": "Error"}, 400
     try:
         property = request.json
-        print(property)
         data = get_narrative(property)
         return data
 

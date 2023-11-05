@@ -4,7 +4,7 @@
 		postData,
 		getEnvironmentalReport,
 		getPredictCondition,
-		getPredictValueOverTimer,
+		getPredictValueOverTime,
 		getNarrative
 	} from '../../../util.js';
 	import { onMount } from 'svelte';
@@ -18,6 +18,8 @@
 
 	let environmentalReport = {};
 	let narrative = {};
+	let predictCondition = {};
+	let predictValue = {}
 
 	let id;
 
@@ -27,12 +29,17 @@
 			alert('You need to call this route with a id query parameter');
 		}
 
+		predictCondition = await getPredictCondition($userData.properties[id]);
+		console.log(predictCondition)
+		
+		predictValue = await getPredictValueOverTime($userData.properties[id]);
+		console.log(predictValue)
+
 		environmentalReport = await getEnvironmentalReport($userData.properties[id]);
 		environmentalReport = environmentalReport['message'];
+
 		narrative = await getNarrative($userData.properties[id]);
 		narrative = narrative['message'];
-		//environmentalReport = await getEnvironmentalReport()['message'];
-		//environmentalReport = await getEnvironmentalReport()['message'];
 	});
 </script>
 

@@ -102,7 +102,6 @@ export async function getData(n = 0) {
 		} else {
 			userData.set(user['user']);
 		}
-		console.log(user);
 	} catch (error) {
 		console.log(n);
 		if (n != 1) {
@@ -117,10 +116,6 @@ export async function getData(n = 0) {
 }
 
 export async function postData() {
-	console.log('posting data');
-	console.log('the data to post is:');
-	console.log(get(userData));
-
 	if (get(anonymousMode)) {
 		console.log('YORUE IN ANONYNOUS MODE, YOU CANNOT POST DATA');
 		return;
@@ -164,8 +159,6 @@ export async function getEnvironmentalReport(propertyData) {
 			body: JSON.stringify(propertyData)
 		});
 		const data = await response.json();
-		console.log('envior report:');
-		console.log(data);
 		return data;
 	} catch (error) {
 		console.log(error);
@@ -195,7 +188,7 @@ export async function getNarrative(propertyData) {
 	}
 }
 
-export async function getPredictValueOverTimer(propertyData) {
+export async function getPredictValueOverTime(propertyData) {
 	await fetchAuthToken();
 	if (get(authToken) == '') {
 		console.log('blank auth token');
