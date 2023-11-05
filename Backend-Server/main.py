@@ -10,13 +10,12 @@ from flask_cors import CORS, cross_origin
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
-import json
 import pandas as pd
 from flask import Flask, request, jsonify
 import openai
+from apikey import api_key
 
 from firebase_admin import credentials, firestore, auth
 
@@ -44,26 +43,18 @@ def check_auth():
 # conditionPrediction
 def predict_condition(property):
     # Load the trained model
-    print("a")
-    dt, _ = conditionPrediction(load_data_from_firestore("Collection_Name"))
-    print("b")
-    # Preprocess the property
-    property["built-date"] = pd.to_datetime(property["built-date"]).astype(int) / 10**9
-    property["defect-log"] = LabelEncoder().fit_transform([property["defect-log"]])
-    property["maintenance-log"] = LabelEncoder().fit_transform([property["maintenance-log"]])
-    property["renovation-log"] = LabelEncoder().fit_transform([property["renovation-log"]])
-    property["roof"] = LabelEncoder().fit_transform([property["roof"]])
-    print("c")
+    dt = conditionPrediction(property)
+
     # Predict the condition
     prediction = dt.predict([property])
-    print("d")
+
     return prediction[0]
 
 # You give it a property, it returns the correct value
 # valuePredictionOverTime
 def predict_value_over_time(property):
     # Load the trained model
-    rf, _ = valuePredictionOverTime(load_data_from_firestore("Collection_Name"))
+    rf = RandomForestRegressor(n_estimators=100, random_state=42)
 
     # Preprocess the property
     property["built-date"] = pd.to_datetime(property["built-date"]).astype(int) / 10**9
@@ -71,6 +62,9 @@ def predict_value_over_time(property):
     property["maintenance-log"] = LabelEncoder().fit_transform([property["maintenance-log"]])
     property["renovation-log"] = LabelEncoder().fit_transform([property["renovation-log"]])
     property["roof"] = LabelEncoder().fit_transform([property["roof"]])
+
+    # Fit the model with the property data
+    rf.fit(property.drop("value", axis=1), property["value"])
 
     # Predict the value
     prediction = rf.predict([property])
@@ -80,74 +74,28 @@ def predict_value_over_time(property):
 model = YOLO("yolov8x-seg.pt")  # load instance segmentation model
 
 
-# Load the data
-def load_data_from_firestore(collection_name):
-    # Get a reference to the collection
-    collection_ref = db.collection(collection_name)
 
-    # Get all the documents in the collection
-    docs = collection_ref.stream()
-
-    # Convert the documents into a list of dictionaries
-    data = [doc.to_dict() for doc in docs]
-
-    # Convert the list of dictionaries into a DataFrame
-    df = pd.DataFrame(data)
-
-    return df
-
-
-def conditionPrediction(data):
+def conditionPrediction(property):
     # Decision Tree Algorithm
     # Preprocess the data
-    data = load_data_from_firestore("Collection_Name")
-    data["built-date"] = pd.to_datetime(data["built-date"]).astype(int) / 10**9
-    data["defect-log"] = LabelEncoder().fit_transform(data["defect-log"])
-    data["maintenance-log"] = LabelEncoder().fit_transform(data["maintenance-log"])
-    data["renovation-log"] = LabelEncoder().fit_transform(data["renovation-log"])
-    data["roof"] = LabelEncoder().fit_transform(data["roof"])
+    property["built-date"] = pd.to_datetime(property["built-date"]).astype(int) / 10**9
+    property["defect-log"] = LabelEncoder().fit_transform([property["defect-log"]])
+    property["maintenance-log"] = LabelEncoder().fit_transform([property["maintenance-log"]])
+    property["renovation-log"] = LabelEncoder().fit_transform([property["renovation-log"]])
+    property["roof"] = LabelEncoder().fit_transform([property["roof"]])
 
     # Convert 'condition' from numerical to categorical
     bins = [0, 20, 40, 60, 80, 100]
     labels = ["bad", "poor", "moderate", "good", "great"]
-    data["condition"] = pd.cut(data["condition"], bins=bins, labels=labels)
-
-    # Assume 'name' is a column in your data
-    if "name" in data:
-        X = data.drop(["condition", "name"], axis=1)  # Keep name out of features
-    else:
-        X = data.drop("condition", axis=1)  # No name in the data
-        print("Warning: 'name' column not found in the data.")
-
-    y = data["condition"]
-
-    # Split the data into training and validation sets
-    X_train, X_val, y_train, y_val = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
-
-    # Keep the asset names for the validation set to pair with predictions
-    if "name" in data:
-        names_val = data.loc[X_val.index, "name"]
+    property["condition"] = pd.cut(property["condition"], bins=bins, labels=labels)
 
     # Initialize the Decision Tree Classifier
     dt = DecisionTreeClassifier(max_depth=10)
 
-    # Fit the model with the training data
-    dt.fit(X_train, y_train)
+    # Fit the model with the property data
+    dt.fit(property.drop("condition", axis=1), property["condition"])
 
-    # Predict the conditions on the training set
-    predictions = dt.predict(X_train)
-
-    # Pair each prediction with the corresponding asset name
-    if "name" in data:
-        prediction_output = pd.DataFrame(
-            {"Asset Name": names_val, "Predicted Condition": predictions}
-        )
-    else:
-        prediction_output = pd.DataFrame({"Predicted Condition": predictions})
-
-    return dt, prediction_output
+    return dt
 
 
 def valuePredictionOverTime(data):
@@ -199,7 +147,7 @@ def valuePredictionOverTime(data):
 
     return rf, prediction_output
 
-from apikey import api_key
+
 
 openai.api_key = api_key
 
@@ -237,12 +185,10 @@ def get_narrative(property):
     built_date = property["built-date"]
     renovation_log = property["renovation-log"]
     defect_log = property["defect-log"]
-    # roof_condition = property["roof"]["condition"]
-    # roof_type = property["roof"]["type"]
 
     assets = property["assets"]
 
-    # Prepare the context for the GPT-3 model
+    # Prepare the context for the GPT-3.5-Turbo model
     messages = [
         {
             "role": "user",

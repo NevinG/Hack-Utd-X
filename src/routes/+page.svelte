@@ -1,7 +1,7 @@
 <script>
 	// Import the functions you need from the SDKs you need
 	import { goto } from '$app/navigation';
-	import { signInWithPopup, signInWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
+	import { signInWithPopup, signInWithEmailAndPassword, signInAnonymously, createUserWithEmailAndPassword } from 'firebase/auth';
 	import { base } from '$app/paths';
 
 	import { auth, provider } from '../util.js';
@@ -54,7 +54,7 @@
 			<input type="password" bind:value={password} placeholder="Password" />
 			<br />
 			<!-- <Button on:click={createUserWithEmailAndPassword(auth, email, password)}>Sign Up</Button> -->
-			<button>Sign Up</button>
+			<button on:click={createUserWithEmailAndPassword(auth, email, password)}>Sign Up</button>
 		</div>
 	{:else}
 		<div class="kid">

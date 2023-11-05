@@ -7,7 +7,7 @@
 
 	function logout() {
 		signOut(auth);
-		location.replace($page.url);
+		location.replace('/');
 	}
 </script>
 
