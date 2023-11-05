@@ -41,15 +41,23 @@ export async function getData() {
         const user = await response.json();
         if(user.exists){
             userData.set(user['user']);
+        } else{
+            userData.set(user['user']);
         }
         console.log(user);
         return user;
     } catch (error) {
+        setTimeout(() => {
+            getData();
+          }, 200);
         console.log(error);
     }
 }
 
 export async function postData(){
+    if(get(anonynmousMode))
+        return;
+
     console.log("posting data");
     console.log("the data to post is:")
     console.log(get(userData))
