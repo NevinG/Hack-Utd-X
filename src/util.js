@@ -103,7 +103,7 @@ export async function getData(n = 0) {
 			userData.set(user['user']);
 		}
 		console.log(user);
-		return user;
+
 	} catch (error) {
 		console.log(n);
 		if (n != 1) {
@@ -135,7 +135,7 @@ export async function postData() {
 	}
 	try {
 		let response = await fetch('http://localhost:3030/user', {
-			method: 'PUT',
+			method: 'POST',
 			headers: {
 				AuthToken: get(authToken),
 				'Content-Type': 'application/json',
@@ -143,6 +143,102 @@ export async function postData() {
 			},
 			body: JSON.stringify(get(userData))
 		});
+	} catch (error) {
+		console.log(error);
+	}
+}
+
+export async function getEnvironmentalReport(propertyData) {
+	await fetchAuthToken();
+	if (get(authToken) == '') {
+		console.log('blank auth token');
+		return;
+	}
+	try {
+		let response = await fetch('http://localhost:3030/get_environmental_report', {
+			method: 'POST',
+			headers: {
+				AuthToken: get(authToken),
+				'Content-Type': 'application/json',
+				'Access-Control-Allow-Origin': 'no-cors'
+			},
+			body: JSON.stringify(propertyData)
+		});
+		const data = await response.json();
+		return data;
+
+	} catch (error) {
+		console.log(error);
+	}
+}
+
+export async function getNarrative(propertyData) {
+	await fetchAuthToken();
+	if (get(authToken) == '') {
+		console.log('blank auth token');
+		return;
+	}
+	try {
+		let response = await fetch('http://localhost:3030/get_narrative', {
+			method: 'POST',
+			headers: {
+				AuthToken: get(authToken),
+				'Content-Type': 'application/json',
+				'Access-Control-Allow-Origin': 'no-cors'
+			},
+			body: JSON.stringify(propertyData)
+		});
+		const data = await response.json();
+		return data;
+
+	} catch (error) {
+		console.log(error);
+	}
+}
+
+export async function getPredictValueOverTimer(propertyData) {
+	await fetchAuthToken();
+	if (get(authToken) == '') {
+		console.log('blank auth token');
+		return;
+	}
+	try {
+		let response = await fetch('http://localhost:3030/get_predict_value_over_time', {
+			method: 'POST',
+			headers: {
+				AuthToken: get(authToken),
+				'Content-Type': 'application/json',
+				'Access-Control-Allow-Origin': 'no-cors'
+			},
+			body: JSON.stringify(propertyData)
+		});
+		const data = await response.json();
+		return data;
+
+	} catch (error) {
+		console.log(error);
+	}
+}
+
+export async function getPredictCondition(propertyData) {
+	await fetchAuthToken();
+	if (get(authToken) == '') {
+		console.log('blank auth token');
+		return;
+	}
+	try {
+		let response = await fetch('http://localhost:3030/get_predict_condition', {
+			method: 'POST',
+			headers: {
+				AuthToken: get(authToken),
+				'Content-Type': 'application/json',
+				'Access-Control-Allow-Origin': 'no-cors'
+			},
+			body: JSON.stringify(propertyData)
+		});
+		const data = await response.json();
+		return data;
+
 	} catch (error) {
 		console.log(error);
 	}

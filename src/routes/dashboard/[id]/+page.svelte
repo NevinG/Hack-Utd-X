@@ -2,12 +2,16 @@
 	export let data;
 
 	import { userData } from '../../../store';
-	import { postData } from '../../../util.js';
+	import { postData, getEnvironmentalReport, getPredictCondition, getPredictValueOverTimer, getNarrative } from '../../../util.js';
+	import { onMount } from 'svelte';
 
 	let assetDropdown = false;
 	let featuresDropdown = false;
 	let defectLogDropdown = false;
 	let rennovationLogDropdown = false;
+
+	let environmentalReport = "";
+	let narrative = "";
 
 	for(let i = 0; i < $userData.properties[data.id].assets.length; i++){
 		$userData.properties[data.id].assets[i]['location'] = {
@@ -15,6 +19,13 @@
 			"long": "",
 		}
 	}
+
+	onMount(async () => {
+		environmentalReport = await getEnvironmentalReport($userData.properties[data.id])['message'];
+		narrative = await getNarrative($userData.properties[data.id])['message'];
+		//environmentalReport = await getEnvironmentalReport()['message'];
+		//environmentalReport = await getEnvironmentalReport()['message'];
+	});
 </script>
 
 <!-- TODO IS TO get dat on back if it doesnt save -->
@@ -241,8 +252,10 @@
 	<div>
 		<h1>Condition Report</h1>
 		<p>condition report contents (to be filled)</p>
+		<h1>Enviornment Report</h1>
+		<p>{environmentalReport}</p>
 		<h1>Narrative</h1>
-		<p>condition report contents (to be filled)</p>
+		<p>{narrative}</p>
 	</div>
 	<button on:click={postData}>Save Data</button>
 </div>
