@@ -134,14 +134,32 @@ def predict():
     return jsonify({"image": split_string[0] + "," + base64_img})
 
 # Load the data
+<<<<<<< HEAD
 # with open('ML/test.json') as f:
 #     data = json.load(f)
 
 #df = pd.json_normalize(data)
+=======
+def load_data_from_firestore(collection_name):
+    # Get a reference to the collection
+    collection_ref = db.collection(collection_name)
+
+    # Get all the documents in the collection
+    docs = collection_ref.stream()
+
+    # Convert the documents into a list of dictionaries
+    data = [doc.to_dict() for doc in docs]
+
+    # Convert the list of dictionaries into a DataFrame
+    df = pd.DataFrame(data)
+
+    return df
+>>>>>>> main
 
 def conditionPrediction(data):
     # Decision Tree Algorithm
     # Preprocess the data
+    data = load_data_from_firestore("Collection_Name")
     data['built-date'] = pd.to_datetime(data['built-date']).astype(int) / 10**9
     data['defect-log'] = LabelEncoder().fit_transform(data['defect-log'])
     data['maintenance-log'] = LabelEncoder().fit_transform(data['maintenance-log'])
@@ -255,18 +273,17 @@ def generate_environmental_report(property):
     assets = property["assets"]
 
     # Prepare the context for the GPT-3 model
-    context = f"The property has a size of {size} square feet and a value of {value}. It was built on {built_date}. The roof condition is rated as {roof_condition} and the roof type is {roof_type}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}."
+    messages = [{"role": "Real Estate Agent", "content":f"The property has a size of {size} square feet and a value of {value}. It was built on {built_date}. The roof condition is rated as {roof_condition} and the roof type is {roof_type}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. Generate an environmental report based off of this context."}]
 
     # Generate the report using the GPT-3 model
-    response = openai.Completion.create(
-      engine="text-davinci-003",
-      prompt=context + "\n\nGenerate an environmental impact report:",
+    response = openai.ChatCompletion.create(
+      model="gpt-3.5-turbo",
+      messages=messages,
       temperature=0.5,
       max_tokens=500
     )
 
     return response.choices[0].text.strip()
-
 
 def generateNarrative():
     pass
