@@ -10,6 +10,7 @@
 		"format": "prettier --plugin-search-dir . --write ."
 	},
 	"devDependencies": {
+		"@ar-js-org/ar.js": "^3.4.5",
 		"@iconify/json": "^2.2.131",
 		"@sveltejs/adapter-auto": "^2.0.0",
 		"@sveltejs/adapter-static": "^2.0.3",
@@ -18,6 +19,7 @@
 		"@types/lodash": "^4.14.200",
 		"aframe": "^1.4.2",
 		"autoprefixer": "^10.4.14",
+		"aframe-svg-extruder": "^1.0.2",
 		"carbon-components-svelte": "^0.81.0",
 		"chart.js": "^4.4.0",
 		"chartjs-plugin-datalabels": "^2.2.0",
@@ -34,6 +36,7 @@
 		"svelte-check": "^3.0.0",
 		"svelte-preprocess": "^5.0.0",
 		"tailwindcss": "^3.3.2",
+		"unplugin-icons": "^0.17.3",
 		"vite": "^4.4.2"
 	},
 	"type": "module",
