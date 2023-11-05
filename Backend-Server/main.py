@@ -20,7 +20,7 @@ import openai
 
 from firebase_admin import credentials, firestore, auth
 
-cred = credentials.Certificate("./authenticationKey.json")
+cred = credentials.Certificate("/Users/jayeshpaluru/Hack-Utd-X/Backend-Server/authenticationKey.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 usersRef = db.collection("users")
@@ -55,7 +55,6 @@ def predict_condition(property):
 
     # Predict the condition
     prediction = dt.predict([property])
-
     return prediction[0]
 
 # You give it a property, it returns the correct value
@@ -199,7 +198,7 @@ def valuePredictionOverTime(data):
     return rf, prediction_output
 
 
-openai.api_key = "_____________"
+openai.api_key = "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"
 
 
 def get_environmental_report(property):
@@ -212,7 +211,7 @@ def get_environmental_report(property):
     # roof_type = property["roof"]["type"]
     assets = property["assets"]
 
-    # Prepare the context for the GPT-3 model
+    # Prepare the context for the GPT-3.5-turbo model
     messages = [
         {
             "role": "user",
@@ -225,7 +224,8 @@ def get_environmental_report(property):
         model="gpt-3.5-turbo", messages=messages, temperature=0.5, max_tokens=500
     )
 
-    return {"message": response.choices[0].text.strip()}
+    return {"message": response.choices[0].message.content.strip()}
+
 
 
 def get_narrative(property):
@@ -252,7 +252,7 @@ def get_narrative(property):
         model="gpt-3.5-turbo", messages=messages, temperature=0.5, max_tokens=500
     )
 
-    return {"message": response.choices[0].text.strip()}
+    return {"message": response.choices[0].message.content.strip()}
 
 
 # Checks if user is authenticated
@@ -337,6 +337,7 @@ def get_calculate_environmental_report():
         return {"Error": "Error"}, 400
     try:
         property = request.json
+        print(property)
         data = get_environmental_report(property)
         return data
 
@@ -353,6 +354,7 @@ def get_calculate_narrative():
         return {"Error": "Error"}, 400
     try:
         property = request.json
+        print(property)
         data = get_narrative(property)
         return data
 
