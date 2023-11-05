@@ -9,7 +9,7 @@
 	} from '../../../util.js';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { base } from '$app/environment';
+	import { base } from '$app/paths';
 
 	let assetDropdown = false;
 	let featuresDropdown = false;

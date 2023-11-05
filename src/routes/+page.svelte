@@ -2,7 +2,7 @@
 	// Import the functions you need from the SDKs you need
 	import { goto } from '$app/navigation';
 	import { signInWithPopup, signInWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
-	import { base } from '$app/environment';
+	import { base } from '$app/paths';
 
 	import { auth, provider } from '../util.js';
 	import { anonymousMode } from '../store.js';

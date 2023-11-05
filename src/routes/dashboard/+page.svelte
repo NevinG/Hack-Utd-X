@@ -2,7 +2,7 @@
 	import { signOut } from 'firebase/auth';
 	import { auth, sampleProperty } from '../../util.js';
 	import { userData, userExists } from '../../store.js';
-	import { base } from '$app/environment';
+	import { base } from '$app/paths';
 
 	function logout() {
 		signOut(auth);
