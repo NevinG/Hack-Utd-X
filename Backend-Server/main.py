@@ -134,10 +134,10 @@ def predict():
     return jsonify({"image": split_string[0] + "," + base64_img})
 
 # Load the data
-with open('ML/test.json') as f:
-    data = json.load(f)
+# with open('ML/test.json') as f:
+#     data = json.load(f)
 
-df = pd.json_normalize(data)
+#df = pd.json_normalize(data)
 
 def conditionPrediction(data):
     # Decision Tree Algorithm

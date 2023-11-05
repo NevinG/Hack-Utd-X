@@ -1,15 +1,15 @@
 <script>
 	import { signOut } from 'firebase/auth';
 	import { auth, sampleProperty } from '../../util.js';
-	import { goto } from '$app/navigation';
-	import { userData } from '../../store.js';
+	import { userData, userExists } from '../../store.js';
 
 	function logout() {
 		signOut(auth);
-		goto('/');
+		location.replace('/');
 	}
 </script>
 
+{#if $userExists}
 <div id="wrapper">
 	<h1>Properties:</h1>
 	{#each $userData['properties'] as property, i}
@@ -32,6 +32,9 @@
 	<br/>
 	<button on:click={logout}>logout</button>
 </div>
+{:else}
+<p>Cant get data :(</p>
+{/if}
 
 
 <style>

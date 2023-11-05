@@ -2,6 +2,7 @@ import { writable } from 'svelte/store';
 
 export const anonymousMode = writable(false);
 export const authToken = writable('');
+export const userExists = writable(false);
 export const userData = writable({
     properties: [
       {
