@@ -278,7 +278,7 @@ def post_user():
         return {"Error": "Error"}, 400
 
 
-@app.route("/get_predict_condition", methods=["GET"])
+@app.route("/get_predict_condition", methods=["POST"])
 @cross_origin()
 def get_predict_condition():
     uid = check_auth()
@@ -294,7 +294,7 @@ def get_predict_condition():
         return {"Error": "Error"}, 400
 
 
-@app.route("/get_predict_value_over_time", methods=["GET"])
+@app.route("/get_predict_value_over_time", methods=["POST"])
 @cross_origin()
 def get_predict_value_over_time():
     uid = check_auth()
@@ -310,7 +310,7 @@ def get_predict_value_over_time():
         return {"Error": "Error"}, 400
 
 
-@app.route("/get_environmental_report", methods=["GET"])
+@app.route("/get_environmental_report", methods=["POST"])
 @cross_origin()
 def get_calculate_environmental_report():
     uid = check_auth()
@@ -326,7 +326,7 @@ def get_calculate_environmental_report():
         return {"Error": "Error"}, 400
 
 
-@app.route("/get_narrative", methods=["GET"])
+@app.route("/get_narrative", methods=["POST"])
 @cross_origin()
 def get_calculate_narrative():
     uid = check_auth()
