@@ -7,7 +7,7 @@
 	import { userData } from '../../store';
 	import { formatValue, distanceBetweenLatLong } from '$lib/util.js';
 	import { page } from '$app/stores';
-	import { base } from '$app/environment';
+	import { base } from '$app/paths';
 
 	import HomeIcon from '~icons/material-symbols/home';
 	import CloseIcon from '~icons/carbon/close';
