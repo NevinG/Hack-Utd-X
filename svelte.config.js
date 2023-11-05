@@ -1,5 +1,6 @@
 import adapter from '@sveltejs/adapter-static';
-import preprocess from 'svelte-preprocess';
+import { vitePreprocess } from '@sveltejs/kit/vite';
+// import preprocess from 'svelte-preprocess';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -12,13 +13,7 @@ const config = {
 			'$components/*': 'src/lib/components/*'
 		}
 	},
-	preprocess: [
-		preprocess({
-			scss: {
-				includePaths: ['src/lib/styles']
-			}
-		})
-	]
+	preprocess: [vitePreprocess({})]
 };
 
 export default config;
