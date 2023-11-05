@@ -1,38 +1,41 @@
-# create-svelte
+# Property Prober
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+## How we used GitHub
 
-## Creating a project
+During development, we used three key GitHub features:
 
-If you're seeing this, you've probably already done this step. Congrats!
+- [Actions & Pages](#actions)
+- [Issues & Pull Requests](#issues--pull-requests)
+- [Projects](#projects)
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+#### Actions
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+We used actions to automatically build the SvelteKit website and update GitHub Pages whenever we committed to main. This allowed us to instantly test our changes in production and to save time by not manually building. Futhermore, since GitHub pages supports custom domains, were are able to use it for a full deployment.
 
-## Developing
+![Screenshot of GitHub actions page](./static/gh_actions.png)
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+#### Issues & Pull Requests
 
-```bash
-npm run dev
+We used issues to keep track of what we are working on and what we need to do. This made sure we don't forget to fix bugs or other issues as we are working. Issues also allowed us to assign tasks to other team members to help spread the workload. Pull requests also made sure that we did not commit changes to main that cause merge conflicts. Pull requests also allowed for large changes to be tracked and assigned to issues.
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+![Screenshot of GitHub Issues/PR page](./static/gh_issues.png)
 
-## Building
+#### Projects
 
-To create a production version of your app:
+Alongside issues and pull requests, we used a GitHub project to keep track of the overall progress of the project. At the beginning of the project, we added all of the tasks that we needed to get done. As we worked through them, we updated each task's status to in progress and then done. We also kept track of new tasks as they came up and assigned them to team members using projects.
 
-```bash
-npm run build
-```
+![Screenshot of GitHub Projects Page](./static/gh_projects.png)
 
-You can preview the production build with `npm run preview`.
+## Inspiration
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+## What it does
+
+## How we built it
+
+## Challenges we ran into
+
+## Accomplishments that we're proud of
+
+## What we learned
+
+## What's next for PropertyProber
