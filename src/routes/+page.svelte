@@ -77,7 +77,7 @@
 
 <style>
 	.kid {
-		background-color: #022842;
+		background-color: rgb(59,93,96);
 		padding: 4rem;
 		border-radius: 2rem;
 	}
@@ -91,14 +91,9 @@
 		margin-bottom: 1rem;
 	}
 
-	a {
-		font-size: large;
-		margin-bottom: 1rem;
-		color: #c4c9ff;
-	}
-
 	.google {
 		margin-bottom: 0.25rem;
+		background-color: rgb(59,93,96);
 	}
 
 	#parent {

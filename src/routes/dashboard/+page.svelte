@@ -11,19 +11,24 @@
 
 {#if $userExists}
 <div id="wrapper">
+	
 	<h1>Properties:</h1>
 	{#each $userData['properties'] as property, i}
-		<div>
-			<a href="/dashboard/{i}"
-				>{property.name ?? "New Property"}</a
-			>
-			<button on:click={() =>{
-				$userData['properties'].splice(i,1);
-				$userData = $userData;
-				//TODO is to add push data
-			}}>X</button>
+		<div class="property-parent">
+			<div class="property">
+				<a href="/dashboard/{i}"
+					>{property.name ?? "New Property"}</a
+				>
+				<br/>
+			</div>
+			<div class="button-container">
+				<button on:click={() =>{
+					$userData['properties'].splice(i,1);
+					$userData = $userData;
+					//TODO is to add push data
+				}}>X</button>
+			</div>
 		</div>
-		<br/>
 	{/each}
 	<button on:click={()=>{
 		$userData['properties'].push(sampleProperty);
@@ -43,5 +48,20 @@
 		justify-content: center;
 		align-items: center;
 		flex-direction: column;
+	}
+	.property{
+		border-radius: 10px;
+		padding: 25px;
+		margin: 5px;
+		background-color: rgb(82,129,133);
+	}
+	.property-parent{
+		display: flex;
+	}
+	.button-container{
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
 	}
 </style>
