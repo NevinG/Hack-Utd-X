@@ -22,9 +22,9 @@
 		/>
 	</div>
 	<img src="/{$userData.properties[data.id].picture}" alt="commercial real estate property" />
-	<div>Size: <input bind:value={$userData.properties[data.id]['sq-ft']} /></div>
-	<div>Built: <input bind:value={$userData.properties[data.id]['built-date']} /></div>
-	<div>Value: $<input bind:value={$userData.properties[data.id]['value']} /></div>
+	<div>Size: <input placeholder="(sq-ft here)" bind:value={$userData.properties[data.id]['sq-ft']} /></div>
+	<div>Built: <input placeholder="(build date here)" bind:value={$userData.properties[data.id]['built-date']} /></div>
+	<div>Value: $<input placeholder="(value here)" bind:value={$userData.properties[data.id]['value']} /></div>
 
 	<div>
 		<h1>
