@@ -18,7 +18,7 @@
 		loggedIn = user ? true : false;
 		if (loggedIn) {
 			uid = user.uid;
-			goto('/dashboard');
+			goto(`${base}/dashboard`);
 		} else {
 			uid = undefined;
 		}
