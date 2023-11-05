@@ -14,7 +14,7 @@
 
 	import ArThreeUrl from '@ar-js-org/ar.js/three.js/build/ar-threex-location-only?url';
 	import ArAFrameUrl from '@ar-js-org/ar.js/aframe/build/aframe-ar?url';
-	import ArAddonsUrl from '$lib/scripts/araddons.js?url';
+	import ArAddonsUrl from '$lib/scripts/ARAddons.js?url';
 	const AFrameUrl = 'https://aframe.io/releases/1.4.0/aframe.min.js';
 	const externalLibraryCount = 4;
 
