@@ -199,7 +199,7 @@ def valuePredictionOverTime(data):
     return rf, prediction_output
 
 
-openai.api_key = "_____________"
+openai.api_key = "_____"
 
 
 def get_environmental_report(property):
@@ -218,14 +218,14 @@ def get_environmental_report(property):
             "role": "user",
             "content": f"The property has a size of {size} square feet and a value of {value}. It was built on {built_date}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. Generate a report based off of this context that accurately details the potential environmental impacts on this property.",
         }
-    ]
+    ]    
 
     # Generate the report using the GPT-3 model
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo", messages=messages, temperature=0.5, max_tokens=500
     )
 
-    return {"message": response.choices[0].text.strip()}
+    return {"message": response.choices[0]['message']['content']}
 
 
 def get_narrative(property):
@@ -233,7 +233,7 @@ def get_narrative(property):
     value = property["value"]
     built_date = property["built-date"]
     renovation_log = property["renovation-log"]
-    defect_log = property["default-log"]
+    defect_log = property["defect-log"]
     # roof_condition = property["roof"]["condition"]
     # roof_type = property["roof"]["type"]
 
@@ -252,7 +252,7 @@ def get_narrative(property):
         model="gpt-3.5-turbo", messages=messages, temperature=0.5, max_tokens=500
     )
 
-    return {"message": response.choices[0].text.strip()}
+    return {"message": response.choices[0]['message']['content']}
 
 
 # Checks if user is authenticated

@@ -103,7 +103,6 @@ export async function getData(n = 0) {
 			userData.set(user['user']);
 		}
 		console.log(user);
-
 	} catch (error) {
 		console.log(n);
 		if (n != 1) {
@@ -165,8 +164,9 @@ export async function getEnvironmentalReport(propertyData) {
 			body: JSON.stringify(propertyData)
 		});
 		const data = await response.json();
+		console.log('envior report:');
+		console.log(data);
 		return data;
-
 	} catch (error) {
 		console.log(error);
 	}
@@ -190,7 +190,6 @@ export async function getNarrative(propertyData) {
 		});
 		const data = await response.json();
 		return data;
-
 	} catch (error) {
 		console.log(error);
 	}
@@ -214,7 +213,6 @@ export async function getPredictValueOverTimer(propertyData) {
 		});
 		const data = await response.json();
 		return data;
-
 	} catch (error) {
 		console.log(error);
 	}
@@ -238,7 +236,6 @@ export async function getPredictCondition(propertyData) {
 		});
 		const data = await response.json();
 		return data;
-
 	} catch (error) {
 		console.log(error);
 	}
