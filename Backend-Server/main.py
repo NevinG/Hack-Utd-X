@@ -7,7 +7,12 @@ import numpy as np
 from ultralytics import YOLO
 import cv2
 from flask_cors import CORS, cross_origin
-
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import json
+import pandas as pd
 from flask import Flask, request, jsonify
 
 
@@ -109,6 +114,49 @@ def predict():
     base64_img = base64.b64encode(io_buf.getvalue()).decode('utf-8')
 
     return jsonify({'image': base64_img})
+
+
+# Load the data
+with open('ML/test.json') as f:
+    data = json.load(f)
+
+df = pd.json_normalize(data)
+
+def conditionPrediction(data):
+    # Preprocess the data
+    data['built-date'] = pd.to_datetime(data['built-date']).astype(int) / 10**9
+    data['defect-log'] = LabelEncoder().fit_transform(data['defect-log'])
+    data['maintenance-log'] = LabelEncoder().fit_transform(data['maintenance-log'])
+    data['renovation-log'] = LabelEncoder().fit_transform(data['renovation-log'])
+    data['roof'] = LabelEncoder().fit_transform(data['roof'])
+
+    # Convert 'condition' from numerical to categorical
+    bins = [0, 20, 40, 60, 80, 100]
+    labels = ['bad', 'poor', 'moderate', 'good', 'great']
+    data['condition'] = pd.cut(data['condition'], bins=bins, labels=labels)
+
+    # Split the data into features and target
+    X = data.drop('condition', axis=1)
+    y = data['condition']
+
+    # Split the data into training and validation sets
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Initialize the Decision Tree Classifier
+    dt = DecisionTreeClassifier(max_depth=10)
+
+    # Fit the model with the training data
+    dt.fit(X_train, y_train)
+
+    # Predict the conditions on the validation set
+    predictions = dt.predict(X_val)
+
+    # Evaluate the model
+    accuracy = accuracy_score(y_val, predictions)
+    print(f'Validation Accuracy: {accuracy}')
+
+    return dt
+
 
 def conditionPrediction():
     # Decision Tree
