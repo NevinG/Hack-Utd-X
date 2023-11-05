@@ -24,6 +24,63 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 
+export const sampleProperty = {
+    name: null,
+    picture: "ecsw.jpg",
+    address: null,
+    "sq-ft": null,
+    value: null,
+    zipcode: null,
+    assets: [
+      {
+        description: null,
+        location: null,
+        value: null,
+        name: null,
+      },
+    ],
+    "built-date": null,
+    "defect-log": [
+      {
+        description: null,
+        name: null,
+      },
+    ],
+    features: [
+      {
+        name: null,
+        type: null,
+        description: null,
+        "maintenance-log": [
+          {
+            date: null,
+            description: null,
+            name: null,
+          },
+        ],
+      },
+    ],
+    "property-notes": [
+      {
+        description: null,
+        location: null,
+        name: null,
+      },
+    ],
+    "renovation-log": [
+      {
+        cost: null,
+        description: null,
+        name: null,
+      },
+    ],
+    roof: {
+      condition: null,
+      "replacement-date": null,
+      type: null,
+    },
+  }
+
 export async function getData() {
     await fetchAuthToken();
 
@@ -55,9 +112,6 @@ export async function getData() {
 }
 
 export async function postData(){
-    if(get(anonynmousMode))
-        return;
-
     console.log("posting data");
     console.log("the data to post is:")
     console.log(get(userData))
