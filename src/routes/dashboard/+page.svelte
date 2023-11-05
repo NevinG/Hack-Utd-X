@@ -6,7 +6,7 @@
 
 	function logout() {
 		signOut(auth);
-		location.replace('/');
+		location.replace(base);
 	}
 </script>
 
