@@ -71,16 +71,17 @@
 		justify-content: center;
 		align-items: center;
 	}
-	button {
-		background-color: rgb(119, 159, 162);
-		border-radius: 20%;
-		border: none;
-		padding: 4px 3px;
-	}
 	a {
 		text-decoration: none;
 	}
-	button:hover {
-		background-color: rgb(137, 175, 178);
+	button {
+		border-radius: 10px;
+		background: transparent;
+		margin: 5px;
+		color: white;
+		font-size: 30px;
+	}
+	button:hover{
+		cursor: pointer;
 	}
 </style>

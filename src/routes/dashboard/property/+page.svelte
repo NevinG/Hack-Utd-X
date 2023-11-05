@@ -390,11 +390,14 @@
 		grid-template-rows: 1fr 1fr;
 	}
 	button {
-		border-radius: 30%;
-		border: none;
-		background-color: transparent;
+		border-radius: 10px;
+		background: transparent;
+		margin: 5px;
 		color: white;
 		font-size: 30px;
+	}
+	button:hover{
+		cursor: pointer;
 	}
 	h1 {
 		display: flex;
@@ -445,5 +448,8 @@
 	}
 	img {
 		border-radius: 20px;
+	}
+	.dropdown{
+		overflow: hidden; /* Hide scrollbars */
 	}
 </style>

@@ -34,7 +34,10 @@ export const sampleProperty = {
 	assets: [
 		{
 			description: null,
-			location: null,
+			location: {
+				lat: null,
+				long: null,
+			},
 			value: null,
 			name: null
 		}
