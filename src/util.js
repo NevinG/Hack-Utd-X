@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from 'firebase/auth';
 import { GoogleAuthProvider } from 'firebase/auth';
-import { userData, authToken } from "./store.js";
+import { userData, authToken, anonymousMode } from "./store.js";
 import { get } from 'svelte/store'
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -53,6 +53,9 @@ export async function postData(){
     console.log("posting data");
     console.log("the data to post is:")
     console.log(get(userData))
+
+    if(get(anonymousMode))
+        return
     
     await fetchAuthToken();
 
