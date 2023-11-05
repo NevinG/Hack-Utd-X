@@ -39,14 +39,59 @@ def check_auth():
     uid = decoded_token["uid"]
     return uid
 
+def convert_to_timestamp(dates):
+    # If the input is a Series, we can directly use it
+    if isinstance(dates, pd.Series):
+        dates = dates
+
+    # If it's a single value, make it a list
+    elif not isinstance(dates, list):
+        dates = [dates]
+
+    # Convert to datetime, handling errors by returning NaT
+    date_series = pd.to_datetime(dates, errors='coerce', format='%m/%d/%Y')
+
+    # Convert to UNIX timestamp, turning NaT into None
+    timestamps = date_series.map(lambda x: x.timestamp() if pd.notnull(x) else None).tolist()
+
+    # If only one date was passed, return a single value instead of a list
+    return timestamps[0] if len(timestamps) == 1 else timestamps
+
+
+
+
+
+
 # You give it a property, it returns the correct value
 # conditionPrediction
 def predict_condition(property):
-    # Load the trained model
-    dt = conditionPrediction(property)
+    # Decision Tree Algorithm
+    # Preprocess the data
+    property["built-date"] = convert_to_timestamp(property["built-date"]) if "built-date" in property else None
+    property["defect-log"] = [' '.join(map(str, l)) for l in property["defect-log"]] if "defect-log" in property else None
+    property["maintenance-log"] = [' '.join(map(str, l)) for l in property["maintenance-log"]] if "maintenance-log" in property else None
+    property["renovation-log"] = [' '.join(map(str, l)) for l in property["renovation-log"]] if "renovation-log" in property else None
+    property["roof"] = LabelEncoder().fit_transform([property["roof"]["type"]]) if "roof" in property and isinstance(property["roof"], dict) and "type" in property["roof"] else None
+    property["condition"] = property["roof"]["condition"] if "roof" in property and isinstance(property["roof"], dict) and "condition" in property["roof"] else None
+
+    # Convert the dictionary to a DataFrame
+    property_df = pd.DataFrame([property])
+
+    # Drop rows with missing values in specified columns
+    property_df = property_df.dropna(subset=["built-date", "defect-log", "maintenance-log", "renovation-log", "roof", "condition"])
+
+    # Check if DataFrame is empty
+    if property_df.empty:
+        return "Not enough data about the property to make a prediction."
+
+    # Initialize the Decision Tree Classifier
+    dt = DecisionTreeClassifier(max_depth=10)
+
+    # Fit the model with the property data
+    dt.fit(property_df.drop("condition", axis=1), property_df["condition"])
 
     # Predict the condition
-    prediction = dt.predict([property])
+    prediction = dt.predict(property_df.drop("condition", axis=1))
 
     return prediction[0]
 
@@ -57,19 +102,43 @@ def predict_value_over_time(property):
     rf = RandomForestRegressor(n_estimators=100, random_state=42)
 
     # Preprocess the property
-    property["built-date"] = pd.to_datetime(property["built-date"]).astype(int) / 10**9
-    property["defect-log"] = LabelEncoder().fit_transform([property["defect-log"]])
-    property["maintenance-log"] = LabelEncoder().fit_transform([property["maintenance-log"]])
-    property["renovation-log"] = LabelEncoder().fit_transform([property["renovation-log"]])
-    property["roof"] = LabelEncoder().fit_transform([property["roof"]])
+    property["built-date"] = convert_to_timestamp(property["built-date"])
+
+    if "defect-log" in property and property["defect-log"] is not None:
+        property["defect-log"] = [' '.join(map(str, l)) for l in property["defect-log"]]
+    else:
+        property["defect-log"] = None
+
+    if "maintenance-log" in property and property["maintenance-log"] is not None:
+        property["maintenance-log"] = [' '.join(map(str, l)) for l in property["maintenance-log"]]
+    else:
+        property["maintenance-log"] = None
+    
+    if "renovation-log" in property and property["renovation-log"] is not None:
+        property["renovation-log"] = [' '.join(map(str, l)) for l in property["renovation-log"]]
+    else:
+        property["renovation-log"] = None
+
+    property["roof"] = LabelEncoder().fit_transform([property["roof"]]) if "roof" in property else None
+
+    # Convert the dictionary to a DataFrame
+    property_df = pd.DataFrame([property])
+
+    # Drop rows with missing values in specified columns
+    property_df = property_df.dropna(subset=["built-date", "defect-log", "maintenance-log", "renovation-log", "roof"])
+
+    # Check if DataFrame is empty
+    if property_df.empty:
+        return "Not enough data about the property to make a prediction."
 
     # Fit the model with the property data
-    rf.fit(property.drop("value", axis=1), property["value"])
+    rf.fit(property_df.drop("value", axis=1), property_df["value"])
 
     # Predict the value
-    prediction = rf.predict([property])
+    prediction = rf.predict(property_df)
 
     return prediction[0]
+
 
 model = YOLO("yolov8x-seg.pt")  # load instance segmentation model
 
@@ -78,11 +147,25 @@ model = YOLO("yolov8x-seg.pt")  # load instance segmentation model
 def conditionPrediction(property):
     # Decision Tree Algorithm
     # Preprocess the data
-    property["built-date"] = pd.to_datetime(property["built-date"]).astype(int) / 10**9
-    property["defect-log"] = LabelEncoder().fit_transform([property["defect-log"]])
-    property["maintenance-log"] = LabelEncoder().fit_transform([property["maintenance-log"]])
-    property["renovation-log"] = LabelEncoder().fit_transform([property["renovation-log"]])
-    property["roof"] = LabelEncoder().fit_transform([property["roof"]])
+    # Check if 'built-date' is a list and convert it to a list if it's not
+    property["built-date"] = convert_to_timestamp(property["built-date"])
+
+    if "defect-log" in property and property["defect-log"] is not None:
+        property["defect-log"] = [' '.join(map(str, l)) for l in property["defect-log"]]
+    else:
+        property["defect-log"] = None
+
+    if "maintenance-log" in property and property["maintenance-log"] is not None:
+        property["maintenance-log"] = [' '.join(map(str, l)) for l in property["maintenance-log"]]
+    else:
+        property["maintenance-log"] = None
+    
+    if "renovation-log" in property and property["renovation-log"] is not None:
+        property["renovation-log"] = [' '.join(map(str, l)) for l in property["renovation-log"]]
+    else:
+        property["renovation-log"] = None
+
+    property["roof"] = LabelEncoder().fit_transform([property["roof"]]) if "roof" in property else None
 
     # Convert 'condition' from numerical to categorical
     bins = [0, 20, 40, 60, 80, 100]
@@ -101,11 +184,11 @@ def conditionPrediction(property):
 def valuePredictionOverTime(data):
     # Random Forest Regression
     # Preprocess the data
-    data["built-date"] = pd.to_datetime(data["built-date"]).astype(int) / 10**9
-    data["defect-log"] = LabelEncoder().fit_transform(data["defect-log"])
-    data["maintenance-log"] = LabelEncoder().fit_transform(data["maintenance-log"])
-    data["renovation-log"] = LabelEncoder().fit_transform(data["renovation-log"])
-    data["roof"] = LabelEncoder().fit_transform(data["roof"])
+    property["built-date"] = convert_to_timestamp(property["built-date"])
+    property["defect-log"] = [' '.join(map(str, l)) for l in property["defect-log"]]
+    property["maintenance-log"] = [' '.join(map(str, l)) for l in property["maintenance-log"]]
+    property["renovation-log"] = [' '.join(map(str, l)) for l in property["renovation-log"]]
+    property["roof"] = LabelEncoder().fit_transform([property["roof"]])
 
     # Assume 'name' is a column in your data
     if "name" in data:
@@ -255,7 +338,11 @@ def get_predict_condition():
     try:
         property = request.json
         data = predict_condition(property)
-        return data
+        if isinstance(data, pd.DataFrame) or isinstance(data, pd.Series):
+            return jsonify(data.to_json())
+        else:
+        # handle cases where data is not a pandas object, perhaps it's a string message
+            return jsonify({"message": data})
 
     except Exception as error:
         print(error)
@@ -271,7 +358,11 @@ def get_predict_value_over_time():
     try:
         property = request.json
         data = predict_value_over_time(property)
-        return data
+        if isinstance(data, pd.DataFrame) or isinstance(data, pd.Series):
+            return jsonify(data.to_json())
+        else:
+        # handle cases where data is not a pandas object, perhaps it's a string message
+            return jsonify({"message": data})
 
     except Exception as error:
         print(error)
