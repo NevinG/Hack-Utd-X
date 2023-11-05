@@ -16,7 +16,7 @@ from sklearn.metrics import mean_squared_error
 import json
 import pandas as pd
 from flask import Flask, request, jsonify
-
+import openai
 
 from firebase_admin import credentials, firestore, auth
 
@@ -140,6 +140,7 @@ with open('ML/test.json') as f:
 df = pd.json_normalize(data)
 
 def conditionPrediction(data):
+    # Decision Tree Algorithm
     # Preprocess the data
     data['built-date'] = pd.to_datetime(data['built-date']).astype(int) / 10**9
     data['defect-log'] = LabelEncoder().fit_transform(data['defect-log'])
@@ -195,6 +196,7 @@ def conditionPrediction(data):
     return dt, prediction_output
 
 def valuePredictionOverTime(data):
+    # Random Forest Regression
     # Preprocess the data
     data['built-date'] = pd.to_datetime(data['built-date']).astype(int) / 10**9
     data['defect-log'] = LabelEncoder().fit_transform(data['defect-log'])
@@ -239,6 +241,31 @@ def valuePredictionOverTime(data):
         })
 
     return rf, prediction_output
+
+openai.api_key = '_____________'
+
+def generate_environmental_report(property):
+    # Extract relevant information from the property
+    size = property["sq-ft"]
+    value = property["value"]
+    built_date = property["built-date"]
+    renovation_log = property["renovation-log"]
+    roof_condition = property["roof"]["condition"]
+    roof_type = property["roof"]["type"]
+    assets = property["assets"]
+
+    # Prepare the context for the GPT-3 model
+    context = f"The property has a size of {size} square feet and a value of {value}. It was built on {built_date}. The roof condition is rated as {roof_condition} and the roof type is {roof_type}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}."
+
+    # Generate the report using the GPT-3 model
+    response = openai.Completion.create(
+      engine="text-davinci-003",
+      prompt=context + "\n\nGenerate an environmental impact report:",
+      temperature=0.5,
+      max_tokens=500
+    )
+
+    return response.choices[0].text.strip()
 
 
 def generateNarrative():
