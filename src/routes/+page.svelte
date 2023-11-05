@@ -38,7 +38,7 @@
 	}
 </script>
 
-<h1>Title</h1>
+<h1>PropertyProber</h1>
 <div id="parent">
 	{#if signUpPage}
 		<div class="kid">
@@ -62,7 +62,9 @@
 			<br />
 			<input type="password" bind:value={password} placeholder="Password" />
 			<br />
-			<p>Dont have account <a href={base} on:click={() => (signUpPage = true)}>Sign Up</a></p>
+			<div class = "center-text"
+			<p>Don't have an account <a href={base} on:click={() => (signUpPage = true)} style="text-decoration: underline;">Sign Up</a><p>
+			</div>
 			<br />
 			<button on:click={userpassLogin} kind="primary">Sign In</button>
 			<hr />
@@ -70,25 +72,37 @@
 				<button on:click={googleLogin}>Continue With Google</button>
 			</div>
 			<br />
-			<button on:click={anonymousLogin}> Skip Sign In </button>
+			<button on:click={anonymousLogin}> Sign In Anonymously </button>
 		</div>
 	{/if}
 </div>
 
 <style>
 	.kid {
-		background-color: rgb(59, 93, 96);
-		padding: 4rem;
-		border-radius: 2rem;
+	background-color: rgb(59, 93, 96);
+	padding: 4rem;
+	border-radius: 0; /* Remove border radius to make it square */
+	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); /* Add box shadow for depth */
+	width: 300px; /* Set a fixed width */
+	height: 300px; /* Set a fixed height */
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 	}
 
 	p {
 		color: white;
+		font-size: 0.9rem;
 	}
 
 	hr {
-		margin-top: 1rem;
-		margin-bottom: 1rem;
+		border: 0;
+		height: 1px;
+		background-image: linear-gradient(to right, rgba(59, 93, 96, 0), rgba(59, 93, 96, 0.75), rgba(59, 93, 96, 0));
+	}
+
+	.center-text {
+	text-align: center;
 	}
 
 	.google {
@@ -99,12 +113,43 @@
 	#parent {
 		display: flex;
 		justify-content: center;
+		align-items: center;
+		height: 100vh;
 	}
+
 	h1 {
 		text-align: center;
+		color: rgb(59, 93, 96);
+		font-size: 2rem;
+		margin-top: 50px; 
 	}
+
 	.signup-email {
 		margin-top: 1rem;
 		margin-bottom: 0.25rem;
+	}
+
+	input[type="text"], input[type="password"] {
+		width: 100%;
+		padding: 0.5rem;
+		border: 1px solid #ddd;
+		border-radius: 0.25rem;
+	}
+
+	button {
+		width: 100%;
+		padding: 0.75rem;
+		border: none;
+		border-radius: 0.25rem;
+		color: #3b5d60;
+		background-color: #fff;
+		cursor: pointer;
+		transition: box-shadow 0.3s ease, background-color 0.3s ease;
+	}
+
+	button:hover {
+		box-shadow: 0 0 10px #3b5d60;
+		background-color: #3b5d60;
+		color: #fff;
 	}
 </style>
