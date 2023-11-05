@@ -134,12 +134,6 @@ def predict():
     return jsonify({"image": split_string[0] + "," + base64_img})
 
 # Load the data
-<<<<<<< HEAD
-# with open('ML/test.json') as f:
-#     data = json.load(f)
-
-#df = pd.json_normalize(data)
-=======
 def load_data_from_firestore(collection_name):
     # Get a reference to the collection
     collection_ref = db.collection(collection_name)
@@ -154,7 +148,6 @@ def load_data_from_firestore(collection_name):
     df = pd.DataFrame(data)
 
     return df
->>>>>>> main
 
 def conditionPrediction(data):
     # Decision Tree Algorithm
