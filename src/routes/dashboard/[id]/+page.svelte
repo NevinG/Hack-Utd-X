@@ -7,8 +7,14 @@
 	let assetDropdown = false;
 	let featuresDropdown = false;
 	let defectLogDropdown = false;
-	let propertyNotesDropdown = false;
 	let rennovationLogDropdown = false;
+
+	for(let i = 0; i < $userData.properties[data.id].assets.length; i++){
+		$userData.properties[data.id].assets[i]['location'] = {
+			"lat": "",
+			"long": "",
+		}
+	}
 </script>
 
 <!-- TODO IS TO get dat on back if it doesnt save -->
@@ -25,6 +31,7 @@
 	<div>Size: <input placeholder="(sq-ft here)" bind:value={$userData.properties[data.id]['sq-ft']} /></div>
 	<div>Built: <input placeholder="(build date here)" bind:value={$userData.properties[data.id]['built-date']} /></div>
 	<div>Value: $<input placeholder="(value here)" bind:value={$userData.properties[data.id]['value']} /></div>
+	<div>Address: $<input placeholder="(address here)" bind:value={$userData.properties[data.id]['address']} /></div>
 
 	<div>
 		<h1>
@@ -37,7 +44,7 @@
 		{#if assetDropdown}
 			{#each $userData.properties[data.id].assets as asset, i}
 				<div style="display: flex; align-items: center">
-					<button style="height: 50%">X</button>
+					<button style="height: 50%" on:click={() => {$userData.properties[data.id].assets.splice(i,1); $userData=$userData}}>X</button>
 					&nbsp;
 					<div>
 						<div>
@@ -56,6 +63,18 @@
 							Description: <input
 								placeholder="(description here)"
 								bind:value={$userData.properties[data.id].assets[i]['description']}
+							/>
+						</div>
+						<div>
+							Latitude: <input
+								placeholder="(lat here)"
+								bind:value={$userData.properties[data.id].assets[i]['location']['lat']}
+							/>
+						</div>
+						<div>
+							Longitude: <input
+								placeholder="(long here)"
+								bind:value={$userData.properties[data.id].assets[i]['location']['long']}
 							/>
 						</div>
 					</div>
@@ -85,7 +104,7 @@
 		{#if featuresDropdown}
 			{#each $userData.properties[data.id]['features'] as feature, i}
 				<div style="display: flex; align-items: center">
-					<button style="height: 50%">X</button>
+					<button style="height: 50%" on:click={() => {$userData.properties[data.id]['features'].splice(i,1); $userData=$userData}}>X</button>
 					&nbsp;
 					<div>
 						<div>
@@ -134,7 +153,7 @@
 		{#if defectLogDropdown}
 			{#each $userData.properties[data.id]['defect-log'] as defectLog, i}
 				<div style="display: flex; align-items: center">
-					<button style="height: 50%">X</button>
+					<button style="height: 50%" on:click={() => {$userData.properties[data.id]['defect-log'].splice(i,1); $userData=$userData}}>X</button>
 					&nbsp;
 					<div>
 						<div>
@@ -173,47 +192,6 @@
 	</div>
 	<div>
 		<h1>
-			Property Notes <button
-				on:click={() => {
-					propertyNotesDropdown = !propertyNotesDropdown;
-				}}>+</button
-			>
-		</h1>
-		{#if propertyNotesDropdown}
-			{#each $userData.properties[data.id]['property-notes'] as propertyNotes, i}
-				<div style="display: flex; align-items: center">
-					<button style="height: 50%">X</button>
-					&nbsp;
-					<div>
-						<div>
-							<input
-								placeholder="(note here)"
-								bind:value={$userData.properties[data.id]['property-notes'][i]['note']}
-							/>
-						</div>
-						<div>
-							<input
-								placeholder="(date here)"
-								bind:value={$userData.properties[data.id]['property-notes'][i]['date']}
-							/>
-						</div>
-						<br />
-					</div>
-				</div>
-			{/each}
-			<button
-				on:click={() => {
-					$userData.properties[data.id]['property-notes'].push({
-						note: null,
-						date: null
-					});
-					$userData = $userData;
-				}}>Add New</button
-			>
-		{/if}
-	</div>
-	<div>
-		<h1>
 			Rennovation Log <button
 				on:click={() => {
 					rennovationLogDropdown = !rennovationLogDropdown;
@@ -223,7 +201,7 @@
 		{#if rennovationLogDropdown}
 			{#each $userData.properties[data.id]['renovation-log'] as renovationLog, i}
 				<div style="display: flex; align-items: center">
-					<button style="height: 50%">X</button>
+					<button style="height: 50%" on:click={() => {$userData.properties[data.id]['renovation-log'].splice(i,1); $userData=$userData}}>X</button>
 					&nbsp;
 					<div>
 						<div>
