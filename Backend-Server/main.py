@@ -58,173 +58,103 @@ def convert_to_timestamp(dates):
     return timestamps[0] if len(timestamps) == 1 else timestamps
 
 
-# You give it a property, it returns the correct value
-# conditionPrediction
 def predict_condition(property):
-    # Decision Tree Algorithm
-    # Preprocess the data
-    property["built-date"] = convert_to_timestamp(property["built-date"]) if "built-date" in property else None
-    property["defect-log"] = [' '.join(map(str, l)) for l in property["defect-log"]] if "defect-log" in property else None
-    property["maintenance-log"] = [' '.join(map(str, l)) for l in property["maintenance-log"]] if "maintenance-log" in property else None
-    property["renovation-log"] = [' '.join(map(str, l)) for l in property["renovation-log"]] if "renovation-log" in property else None
-    property["roof"] = LabelEncoder().fit_transform([property["roof"]["type"]]) if "roof" in property and isinstance(property["roof"], dict) and "type" in property["roof"] else None
-    property["condition"] = property["roof"]["condition"] if "roof" in property and isinstance(property["roof"], dict) and "condition" in property["roof"] else None
+    # Fake data for training the model
+    np.random.seed(42)  # For reproducibility
+    synthetic_data = pd.DataFrame({
+        'built-date': np.random.randint(1970, 2024, 100),  # Random year between 1970 and 2023
+        'defect-log': np.random.choice(['none', 'minor', 'major'], 100),
+        'maintenance-log': np.random.choice(['none', 'annual', 'biennial'], 100),
+        'renovation-log': np.random.choice(['none', 'recent', 'old'], 100),
+        'condition': np.random.choice(['bad', 'poor', 'moderate', 'good', 'great'], 100)
+    })
 
-    # Convert the dictionary to a DataFrame
-    property_df = pd.DataFrame([property])
-    # Drop rows with missing values in specified columns
-    property_df = property_df.dropna(subset=["built-date", "defect-log", "maintenance-log", "renovation-log", "roof", "condition"])
+    # Split the synthetic data
+    X = synthetic_data.drop('condition', axis=1)
+    y = synthetic_data['condition']
 
-    # Check if DataFrame is empty
-    if property_df.empty:
-        return "Not enough data about the property to make a prediction."
+    # Encode categorical data
+    X = pd.get_dummies(X)
 
     # Initialize the Decision Tree Classifier
     dt = DecisionTreeClassifier(max_depth=10)
 
-    # Fit the model with the property data
-    dt.fit(property_df.drop("condition", axis=1), property_df["condition"])
+    # Train the model
+    dt.fit(X, y)
 
+    # Prepare the property for prediction
+    property_for_prediction = {
+        'built-date': [property.get('built-date', 1980)],  # Default to 1980 if not provided
+        'defect-log': [' '.join(entry.get('description', '') for entry in property.get('defect-log', []))],
+        'maintenance-log': [' '.join(entry.get('description', '') for entry in property.get('maintenance-log', []))],
+        'renovation-log': [' '.join(entry.get('description', '') for entry in property.get('renovation-log', []))],
+    }
+    property_df = pd.DataFrame(property_for_prediction)
+    property_df = pd.get_dummies(property_df)
+    
+    # Ensure all columns in the trained model are in the dataframe for prediction
+    for col in X.columns:
+        if col not in property_df:
+            property_df[col] = 0
+    
+    property_df = property_df.reindex(columns=X.columns, fill_value=0)
+    
     # Predict the condition
-    prediction = dt.predict(property_df.drop("condition", axis=1))
+    prediction = dt.predict(property_df)
 
     return prediction[0]
+
+
 
 # You give it a property, it returns the correct value
 # valuePredictionOverTime
 def predict_value_over_time(property):
-    # Load the trained model
-    rf = RandomForestRegressor(n_estimators=100, random_state=42)
+    # Fake for training model
+    np.random.seed(42)  # For reproducibility
+    synthetic_data = pd.DataFrame({
+        'built-date': np.random.randint(1970, 2024, 100),  # Random year between 1970 and 2023
+        'defect-log': np.random.choice(['none', 'minor', 'major'], 100),
+        'maintenance-log': np.random.choice(['none', 'annual', 'biennial'], 100),
+        'renovation-log': np.random.choice(['none', 'recent', 'old'], 100),
+        'value': np.random.randint(100000, 500000, 100) 
+    })
 
-    # Preprocess the property
-    property["built-date"] = convert_to_timestamp(property["built-date"])
+    # Split the synthetic data
+    X = synthetic_data.drop('value', axis=1)
+    y = synthetic_data['value']
 
-    if "defect-log" in property and property["defect-log"] is not None:
-        property["defect-log"] = [' '.join(map(str, l)) for l in property["defect-log"]]
-    else:
-        property["defect-log"] = None
-
-    if "maintenance-log" in property and property["maintenance-log"] is not None:
-        property["maintenance-log"] = [' '.join(map(str, l)) for l in property["maintenance-log"]]
-    else:
-        property["maintenance-log"] = None
-    
-    if "renovation-log" in property and property["renovation-log"] is not None:
-        property["renovation-log"] = [' '.join(map(str, l)) for l in property["renovation-log"]]
-    else:
-        property["renovation-log"] = None
-
-    property["roof"] = LabelEncoder().fit_transform([property["roof"]]) if "roof" in property else None
-
-    # Convert the dictionary to a DataFrame
-    property_df = pd.DataFrame([property])
-
-    # Drop rows with missing values in specified columns
-    property_df = property_df.dropna(subset=["built-date", "defect-log", "maintenance-log", "renovation-log", "roof"])
-
-    # Check if DataFrame is empty
-    if property_df.empty:
-        return "Not enough data about the property to make a prediction."
-
-    # Fit the model with the property data
-    rf.fit(property_df.drop("value", axis=1), property_df["value"])
-
-    # Predict the value
-    prediction = rf.predict(property_df)
-
-    return prediction[0]
-
-
-model = YOLO("yolov8x-seg.pt")  # load instance segmentation model
-
-
-
-def conditionPrediction(property):
-    # Decision Tree Algorithm
-    # Preprocess the data
-    # Check if 'built-date' is a list and convert it to a list if it's not
-    property["built-date"] = convert_to_timestamp(property["built-date"])
-
-    if "defect-log" in property and property["defect-log"] is not None:
-        property["defect-log"] = [' '.join(map(str, l)) for l in property["defect-log"]]
-    else:
-        property["defect-log"] = None
-
-    if "maintenance-log" in property and property["maintenance-log"] is not None:
-        property["maintenance-log"] = [' '.join(map(str, l)) for l in property["maintenance-log"]]
-    else:
-        property["maintenance-log"] = None
-    
-    if "renovation-log" in property and property["renovation-log"] is not None:
-        property["renovation-log"] = [' '.join(map(str, l)) for l in property["renovation-log"]]
-    else:
-        property["renovation-log"] = None
-
-    property["roof"] = LabelEncoder().fit_transform([property["roof"]]) if "roof" in property else None
-
-    # Convert 'condition' from numerical to categorical
-    bins = [0, 20, 40, 60, 80, 100]
-    labels = ["bad", "poor", "moderate", "good", "great"]
-    property["condition"] = pd.cut(property["condition"], bins=bins, labels=labels)
-
-    # Initialize the Decision Tree Classifier
-    dt = DecisionTreeClassifier(max_depth=10)
-
-    # Fit the model with the property data
-    dt.fit(property.drop("condition", axis=1), property["condition"])
-
-    return dt
-
-
-def valuePredictionOverTime(data):
-    # Random Forest Regression
-    # Preprocess the data
-    property["built-date"] = convert_to_timestamp(property["built-date"])
-    property["defect-log"] = [' '.join(map(str, l)) for l in property["defect-log"]]
-    property["maintenance-log"] = [' '.join(map(str, l)) for l in property["maintenance-log"]]
-    property["renovation-log"] = [' '.join(map(str, l)) for l in property["renovation-log"]]
-    property["roof"] = LabelEncoder().fit_transform([property["roof"]])
-
-    # Assume 'name' is a column in your data
-    if "name" in data:
-        X = data.drop(["value", "name"], axis=1)  # Keep name out of features
-    else:
-        X = data.drop("value", axis=1)  # No name in the data
-        print("Warning: 'name' column not found in the data.")
-
-    y = data["value"]
-
-    # Split the data into training and validation sets
-    X_train, X_val, y_train, y_val = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
+    # Encode categorical data
+    X = pd.get_dummies(X)
 
     # Initialize the Random Forest Regressor
     rf = RandomForestRegressor(n_estimators=100, random_state=42)
 
-    # Fit the model with the training data
-    rf.fit(X_train, y_train)
+    # Train the model
+    rf.fit(X, y)
 
-    # Predict the values on the validation set
-    predictions = rf.predict(X_train)
+    # Prepare the property for prediction
+    property_for_prediction = {
+        'built-date': [property.get('built-date', 1980)],  # Default to 1980 if not provided
+        'defect-log': [' '.join(entry.get('description', '') for entry in property.get('defect-log', []))],
+        'maintenance-log': [' '.join(entry.get('description', '') for entry in property.get('maintenance-log', []))],
+        'renovation-log': [' '.join(entry.get('description', '') for entry in property.get('renovation-log', []))],
+    }
+    property_df = pd.DataFrame(property_for_prediction)
+    property_df = pd.get_dummies(property_df)
+    
+    # Ensure all columns in the trained model are in the dataframe for prediction
+   # Ensure all columns in the trained model are in the dataframe for prediction
+    for col in X.columns:
+        if col not in property_df:
+            property_df[col] = 0
+    
+    property_df = property_df.reindex(columns=X.columns, fill_value=0)
+    # Predict the value
+    prediction = rf.predict(property_df)
+    return prediction[0]
 
-    # Evaluate the model
-    mse = mean_squared_error(y_val, predictions)
-    print(f"Mean Squared Error: {mse}")
 
-    # Pair each prediction with the corresponding asset name
-    if "name" in data:
-        prediction_output = pd.DataFrame(
-            {
-                "Asset Name": data.loc[X_val.index, "name"],
-                "Predicted Value": predictions,
-            }
-        )
-    else:
-        prediction_output = pd.DataFrame({"Predicted Value": predictions})
-
-    return rf, prediction_output
-
+model = YOLO("yolov8x-seg.pt")  # load instance segmentation model
 
 
 openai.api_key = api_key
