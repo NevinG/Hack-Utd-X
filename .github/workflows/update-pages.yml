@@ -45,6 +45,8 @@ jobs:
 
       - name: Generate Static Website
         run: npm run build
+        env:
+          PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.PUBLIC_GOOGLE_MAPS_API_KEY }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
