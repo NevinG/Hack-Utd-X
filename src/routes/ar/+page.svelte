@@ -8,6 +8,7 @@
 	import { formatValue, distanceBetweenLatLong } from '$lib/util.js';
 	import { page } from '$app/stores';
 	import { base } from '$app/paths';
+	import _ from 'lodash';
 
 	import HomeIcon from '~icons/material-symbols/home';
 	import CloseIcon from '~icons/carbon/close';
@@ -97,7 +98,32 @@
 			})
 		});
 		const payload = await res.json();
-		return payload.image;
+		return payload;
+	}
+
+	async function getLabelValues(labelCounts) {
+		const labelInfo = {};
+		for (let i in labelCounts) {
+			if (i == 'person') continue;
+			const res = await fetch(
+				`http://localhost:3030/google_query?engine=google_shopping&q=${i}&location=Richardson,+Texas,+United+States&hl=en&gl=us`
+			);
+			const data = await res.json();
+			console.log(data);
+			const products = [].concat(
+				data.inline_shopping_results ?? [],
+				data.featured_shopping_results ?? []
+			);
+			const prices = products.map((item) => {
+				if (item.price.startsWith('$')) return parseFloat(item.price.slice(1));
+				return parseFloat(item.price);
+			});
+			labelInfo[i] = {
+				count: labelCounts[i],
+				mean: Math.round(_.mean(prices) * 100) / 100
+			};
+		}
+		return labelInfo;
 	}
 
 	onMount(() => {
@@ -221,9 +247,21 @@
 			<div class="center">
 				<LoadingIcon />
 			</div>
-		{:then dataString}
+		{:then { image, labels }}
 			<div class="scroll">
-				<img src={dataString} alt="Your webcam with classifications" />
+				<img src={image} alt="Your webcam with classifications" />
+				{#await getLabelValues(labels)}
+					<LoadingIcon />
+				{:then items}
+					<ul>
+						{#each Object.entries(items) as [label, info]}
+							<li>{label} (x{info.count}) - About ${info.mean}</li>
+						{/each}
+					</ul>
+					<h1>Estimated Price: ${_.sum(Object.values(items).map((i) => i.mean * i.count))}</h1>
+				{:catch error}
+					<p>{error}</p>
+				{/await}
 			</div>
 		{:catch error}
 			<div class="center">
@@ -277,6 +315,10 @@
 
 			img {
 				width: 100%;
+			}
+
+			ul {
+				font-size: larger;
 			}
 		}
 	}
