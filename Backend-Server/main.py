@@ -16,7 +16,6 @@ import pandas as pd
 from flask import Flask, request, jsonify
 import openai
 from apikey import api_key
-
 from firebase_admin import credentials, firestore, auth
 
 cred = credentials.Certificate("./authenticationKey.json")
@@ -192,12 +191,14 @@ def get_narrative(property):
     renovation_log = property["renovation-log"]
     defect_log = property["defect-log"]
     assets = property["assets"]
+    predicted_condition = predict_condition(property)
+    predicted_value = predict_value_over_time(property)
 
     # Prepare the context for the GPT-4 model
     messages = [
         {
             "role": "user",
-            "content": f"Play the role of a real estate expert to provide insight to real estate professionals. You are assessing the condition of a property, and are helping real estate professionals see how it compares to other properties on the market. Do not mention this. The property has a size of {size} square feet and a value of {value} in dollars. It was built on {built_date}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. The default log is {defect_log}. Generate a narrative that accurately summarizes the condition and how it compares (or would compare) to similar properties on the market",
+            "content": f"Play the role of a real estate expert to provide insight to real estate professionals. You are assessing the condition of a property, and are helping real estate professionals see how it compares to other properties on the market. Do not mention this. The property has a size of {size} square feet and a value of {value} in dollars. It was built on {built_date}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. The condition of the building is predicted to be: {predicted_condition}. The expected value of the building is predicted to be: {predicted_value}. The default log is {defect_log}. Generate a narrative that accurately summarizes the condition and how it compares (or would compare) to similar properties on the market",
         }
     ]
 
