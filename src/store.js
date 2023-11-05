@@ -1,4 +1,4 @@
-import { writable } from "svelte/store";
+import { writable } from 'svelte/store';
 
 export const anonymousMode = writable(false);
 export const authToken = writable('');
