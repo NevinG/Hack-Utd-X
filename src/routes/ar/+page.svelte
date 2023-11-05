@@ -27,11 +27,19 @@
 
 	let lat = null;
 	let long = null;
-	let propertyNames = $userData.properties.map((p) => p.name);
+	let propertyNames = [];
+	$: propertyNames = $userData.properties.map((p) => p.name);
 	let floors = [0];
 	$: floors = Array.from(new Set((assets ?? [{ floor: 0 }]).map((a) => a.floor ?? 0))).sort();
 	let selectedFloor = 0;
-	let selectedProperty = $userData.properties[0].name;
+	let selectedProperty;
+	$: if (!selectedProperty && $userData.properties) selectedProperty = propertyNames[0];
+
+	userData.subscribe(({ properties }) => {
+		if (properties && !properties.some((p) => p.name == selectedProperty))
+			selectedProperty = properties[0].name;
+	});
+
 	$: {
 		if (selectedProperty) {
 			const property = $userData.properties.find((p) => p.name === selectedProperty);
@@ -41,7 +49,13 @@
 					if (!('floor' in a)) a.floor = 0;
 				});
 				tempAssets = property.assets.filter((a) => {
-					return typeof a.location !== 'string' && 'lat' in a.location && 'long' in a.location;
+					const res =
+						a.location != null &&
+						typeof a.location === 'object' &&
+						'lat' in a.location &&
+						'long' in a.location;
+					if (!res) console.log('Asset with no lat/long', a);
+					return res;
 				});
 				assets = tempAssets;
 			}
@@ -100,10 +114,6 @@
 </script>
 
 <svelte:head>
-	<link
-		href="https://fonts.googleapis.com/css?family=Roboto:regular,black&display=swap"
-		rel="stylesheet"
-	/>
 	<title>Asset Visualizer</title>
 	{#if mounted}
 		<script src={AFrameUrl} on:load={onLibraryLoad}></script>
@@ -149,7 +159,7 @@
 		</a-scene>
 		<div id="ar-overlay">
 			<div class="header">
-				<a href={base}>
+				<a href="{base}/dashboard">
 					<HomeIcon />
 				</a>
 				<select id="property-select" bind:value={selectedProperty}>
