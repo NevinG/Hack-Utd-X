@@ -22,6 +22,10 @@
 	let narrativeReportPromise = null;
 	let predictCondition = {};
 	let predictValue = {};
+	let loadingPredictCondition = true;
+	let loadingPredictValue = true;
+	let loadingEnvironmentalReport = true;
+	let loadingNarrative = true;
 
 	let id;
 
