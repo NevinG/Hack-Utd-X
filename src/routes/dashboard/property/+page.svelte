@@ -9,6 +9,7 @@
 	} from '../../../util.js';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { base } from '$app/environment';
 
 	let assetDropdown = false;
 	let featuresDropdown = false;
@@ -35,7 +36,7 @@
 
 <!-- TODO IS TO get dat on back if it doesnt save -->
 {#if id}
-	<a href="/dashboard">Back</a>
+	<a href="{base}/dashboard">Back</a>
 	<div id="title-wrapper">
 		<div>
 			<input

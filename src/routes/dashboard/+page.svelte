@@ -2,6 +2,7 @@
 	import { signOut } from 'firebase/auth';
 	import { auth, sampleProperty } from '../../util.js';
 	import { userData, userExists } from '../../store.js';
+	import { base } from '$app/environment';
 
 	function logout() {
 		signOut(auth);
@@ -15,7 +16,7 @@
 		{#each $userData['properties'] as property, i}
 			<div class="property-parent">
 				<div class="property">
-					<a href="/dashboard/property?id={i}">{property.name ?? 'New Property'}</a>
+					<a href="{base}/dashboard/property?id={i}">{property.name ?? 'New Property'}</a>
 					<br />
 				</div>
 				<div class="button-container">

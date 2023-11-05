@@ -7,6 +7,7 @@
 	import { userData } from '../../store';
 	import { formatValue, distanceBetweenLatLong } from '$lib/util.js';
 	import { page } from '$app/stores';
+	import { base } from '$app/environment';
 
 	import HomeIcon from '~icons/material-symbols/home';
 	import CloseIcon from '~icons/carbon/close';
@@ -148,7 +149,7 @@
 		</a-scene>
 		<div id="ar-overlay">
 			<div class="header">
-				<a href="/">
+				<a href={base}>
 					<HomeIcon />
 				</a>
 				<select id="property-select" bind:value={selectedProperty}>
