@@ -26,27 +26,29 @@ usersRef = db.collection("users")
 
 app = Flask(__name__)
 cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+app.config["CORS_HEADERS"] = "Content-Type"
 
-#Checks if user is authenticated
+
+# Checks if user is authenticated
 def check_auth():
     token = request.headers.get("Authtoken", None)
     if token == None:
         return ""
-    decoded_token = auth.verify_id_token(token)    
-    uid = decoded_token['uid']
+    decoded_token = auth.verify_id_token(token)
+    uid = decoded_token["uid"]
     return uid
 
-#Checks if user is authenticated
-@app.route('/user', methods=['GET'])
+
+# Checks if user is authenticated
+@app.route("/user", methods=["GET"])
 @cross_origin()
 def get_user():
     uid = check_auth()
     if uid == "":
         return {"Error": "Error"}, 400
-    
+
     try:
-        #for test just get and print a user
+        # for test just get and print a user
         user = usersRef.document(uid).get()
         if user.exists:
             user = user.to_dict()
@@ -62,16 +64,15 @@ def get_user():
                 "exists": True,
                 "user": user
             }
-    
     except Exception as error:
         print(error)
         return {"Error": "Error"}, 400
-    
 
-@app.route('/user', methods=['POST', 'PUT'])
+
+@app.route("/user", methods=["POST", "PUT"])
 @cross_origin()
 def post_user():
-    #Add this line to all things
+    # Add this line to all things
     uid = check_auth()
     if uid == "":
         return {"Error": "Error"}, 400
@@ -80,17 +81,22 @@ def post_user():
         newUser = request.json
         usersRef.document(uid).set(newUser)
         return newUser
-    
+
     except Exception as error:
         print(error)
         return {"Error": "Error"}, 400
-    
-model = YOLO('yolov8x-seg.pt')  # load instance segmentation model
-@app.route('/predict', methods=['POST'])
+
+
+model = YOLO("yolov8x-seg.pt")  # load instance segmentation model
+
+
+@app.route("/predict", methods=["POST"])
 def predict():
     data = request.get_json(force=True)
-    base64_image = data['image']
-    image_data = base64.b64decode(base64_image)
+    base64_image: str = data["image"]
+    split_string = base64_image.split(",")
+    image_data = base64.b64decode(split_string[1])
+    # print(base64.b64encode(image_data))
     image = Image.open(io.BytesIO(image_data))
     img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
@@ -103,17 +109,28 @@ def predict():
             for box in result.boxes:
                 cords = box.xyxy[0].tolist()
                 cords = [round(x) for x in cords]
-                cv2.rectangle(img, (cords[0], cords[1]), (cords[2], cords[3]), (0, 255, 0), 2)
+                cv2.rectangle(
+                    img, (cords[0], cords[1]), (cords[2], cords[3]), (0, 255, 0), 2
+                )
                 class_id = result.names[box.cls[0].item()]
                 conf = round(box.conf[0].item(), 2)
-                cv2.putText(img, f'{class_id}: {conf}', (cords[0], cords[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
+                cv2.putText(
+                    img,
+                    f"{class_id}: {conf}",
+                    (cords[0], cords[1] - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.9,
+                    (36, 255, 12),
+                    2,
+                )
 
     # Convert the image with bounding boxes to base64
     is_success, buffer = cv2.imencode(".png", img)
     io_buf = io.BytesIO(buffer)
-    base64_img = base64.b64encode(io_buf.getvalue()).decode('utf-8')
+    base64_img = base64.b64encode(io_buf.getvalue()).decode("utf-8")
 
-    return jsonify({'image': base64_img})
+    return jsonify({"image": split_string[0] + "," + base64_img})
+
 
 
 # Load the data
@@ -162,9 +179,11 @@ def conditionPrediction():
     # Decision Tree
     pass
 
+
 def valuePredictionOverTime():
     # Multiple Linear/Random Forest Regression
     pass
+
 
 def generateNarrative():
     pass
