@@ -261,12 +261,12 @@ def generate_environmental_report(property):
     value = property["value"]
     built_date = property["built-date"]
     renovation_log = property["renovation-log"]
-    roof_condition = property["roof"]["condition"]
-    roof_type = property["roof"]["type"]
+    # roof_condition = property["roof"]["condition"]
+    # roof_type = property["roof"]["type"]
     assets = property["assets"]
 
-    # Prepare the context for the GPT-3 model
-    messages = [{"role": "Real Estate Agent", "content":f"The property has a size of {size} square feet and a value of {value}. It was built on {built_date}. The roof condition is rated as {roof_condition} and the roof type is {roof_type}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. Generate an environmental report based off of this context."}]
+    # Prepare the context for the GPT-3 model    
+    messages = [{"role": "user", "content":f"The property has a size of {size} square feet and a value of {value}. It was built on {built_date}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. Generate a report based off of this context that accurately details the potential environmental impacts on this property."}]
 
     # Generate the report using the GPT-3 model
     response = openai.ChatCompletion.create(
@@ -278,8 +278,29 @@ def generate_environmental_report(property):
 
     return response.choices[0].text.strip()
 
-def generateNarrative():
-    pass
+def generateNarrative(property):
+    size = property["sq-ft"]
+    value = property["value"]
+    built_date = property["built-date"]
+    renovation_log = property["renovation-log"]
+    defect_log = property["default-log"]
+    # roof_condition = property["roof"]["condition"]
+    # roof_type = property["roof"]["type"]
+    
+    assets = property["assets"]
+    
+     # Prepare the context for the GPT-3 model
+    messages = [{"role": "user", "content":f"Play the role of a real estate expert to provide insight to real estate professionals. The property has a size of {size} square feet and a value of {value} in dollars. It was built on {built_date}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. The default log is {defect_log} Generate a narrative that accurately summarizes the condition and how it compares (or would compare) to similar properties on the market" }]
+
+    # Generate the report using the GPT-3 model
+    response = openai.ChatCompletion.create(
+      model="gpt-3.5-turbo",
+      messages=messages,
+      temperature=0.5,
+      max_tokens=500
+    )
+
+    return response.choices[0].text.strip()    
 
 
 if __name__ == "__main__":
