@@ -20,6 +20,10 @@
 	let narrative = {};
 	let predictCondition = {};
 	let predictValue = {}
+	let loadingPredictCondition = true;
+	let loadingPredictValue = true;
+	let loadingEnvironmentalReport = true;
+	let loadingNarrative = true;
 
 	let id;
 
@@ -30,16 +34,20 @@
 		}
 
 		predictCondition = await getPredictCondition($userData.properties[id]);
+		loadingPredictCondition = false;
 		console.log(predictCondition)
 		
 		predictValue = await getPredictValueOverTime($userData.properties[id]);
+		loadingPredictValue = false;
 		console.log(predictValue)
 
 		environmentalReport = await getEnvironmentalReport($userData.properties[id]);
 		environmentalReport = environmentalReport['message'];
+		loadingEnvironmentalReport = false;
 
 		narrative = await getNarrative($userData.properties[id]);
 		narrative = narrative['message'];
+		loadingNarrative = false;
 	});
 </script>
 
@@ -306,9 +314,9 @@
 			<h1>Condition Report</h1>
 			<p>condition report contents (to be filled)</p>
 			<h1>Environment Report</h1>
-			{environmentalReport}
+			{loadingEnvironmentalReport ? "loading..." : environmentalReport}
 			<h1>Narrative</h1>
-			{narrative}
+			{loadingNarrative ? "loading..." : narrative}
 		</div>
 		<button on:click={postData}>Save Data</button>
 	</div>
