@@ -35,7 +35,7 @@
 							$userData['properties'].splice(i, 1);
 							$userData = $userData;
 							//TODO is to add push data
-						}}>X</button
+						}}>delete</button
 					>
 				</div>
 			</div>
@@ -77,6 +77,7 @@
 		justify-content: center;
 		align-items: center;
 		flex-direction: column;
+		font-family: Montreal, serif;
 	}
 	.property {
 		border-radius: 10px;
@@ -95,5 +96,17 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+	}
+	button {
+		background-color: rgb(119, 159, 162);
+		border-radius: 20%;
+		border: none;
+		padding: 4px 3px;
+	}
+	a {
+		text-decoration: none;
+	}
+	button:hover {
+		background-color: rgb(137, 175, 178);
 	}
 </style>
