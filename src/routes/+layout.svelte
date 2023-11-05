@@ -9,6 +9,7 @@
             console.log("error with user auth state change");
         }
     });
+    
 </script>
 
 <slot />
