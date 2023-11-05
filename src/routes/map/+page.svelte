@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { userData } from '../../store';
 	import { PUBLIC_GOOGLE_MAPS_API_KEY } from '$env/static/public';
+	import { base } from '$app/paths';
 
 	import BackButton from '~icons/material-symbols/arrow-back';
 
@@ -13,15 +14,20 @@
 	let properties = [];
 	$: properties = $userData.properties;
 	let selectedProperty;
+	$: if (!selectedProperty && properties) selectedProperty = properties[0].address;
+	let requestedMarkers = false;
 
-	$: {
-		if (map && AdvancedMarkerElement && Geocoder) {
-			markers.forEach((m) => m.setMap(null));
-			markers = getNewMarkers($userData.properties);
-		}
-	}
+	userData.subscribe(({ properties }) => {
+		if (!requestedMarkers && map && AdvancedMarkerElement && Geocoder) getNewMarkers(properties);
+		if (properties && !properties.some((p) => p.address == selectedProperty))
+			selectedProperty = properties[0].address;
+	});
 
 	async function getNewMarkers(properties) {
+		requestedMarkers = true;
+
+		markers.forEach((m) => m.setMap(null));
+
 		const geocoder = new Geocoder();
 		const newMarkers = [];
 		for (const prop of properties) {
@@ -41,6 +47,8 @@
 				})
 			);
 		}
+		markers = newMarkers;
+		requestedMarkers = false;
 	}
 
 	function panToSelected() {
@@ -56,32 +64,41 @@
 			version: 'weekly'
 		});
 
-		loader.importLibrary('maps').then(({ Map }) => {
-			navigator.geolocation.getCurrentPosition(async (position) => {
-				const lat = position.coords.latitude;
-				const lng = position.coords.longitude;
-
+		Promise.all([
+			loader.importLibrary('maps').then(async ({ Map }) => {
+				const coords = await new Promise((resolve) => {
+					navigator.geolocation.getCurrentPosition(
+						(position) => {
+							const lat = position.coords.latitude;
+							const lng = position.coords.longitude;
+							resolve({ lat, lng });
+						},
+						() => {
+							resolve({ lat: 32.985004100000005, lng: -96.7518982 });
+						}
+					);
+				});
 				map = new Map(mapDiv, {
-					center: { lat, lng },
+					center: coords,
 					zoom: 12,
 					mapId: 'test'
 				});
-			});
-		});
-
-		loader.importLibrary('marker').then(({ AdvancedMarkerElement: m }) => {
-			AdvancedMarkerElement = m;
-		});
-
-		loader.importLibrary('geocoding').then(({ Geocoder: g }) => {
-			Geocoder = g;
+			}),
+			loader.importLibrary('marker').then(({ AdvancedMarkerElement: m }) => {
+				AdvancedMarkerElement = m;
+			}),
+			loader.importLibrary('geocoding').then(({ Geocoder: g }) => {
+				Geocoder = g;
+			})
+		]).then(async () => {
+			getNewMarkers($userData.properties);
 		});
 	});
 </script>
 
 <div class="container">
 	<div class="header">
-		<div class="back-button" on:click={() => window.history.back()} role="none"><BackButton /></div>
+		<a class="back-button" href="{base}/dashboard"><BackButton /></a>
 		<select id="property-select" bind:value={selectedProperty}>
 			{#each properties as prop}
 				<option value={prop.address}>{prop.name} ({prop.address})</option>
