@@ -255,18 +255,17 @@ def generate_environmental_report(property):
     assets = property["assets"]
 
     # Prepare the context for the GPT-3 model
-    context = f"The property has a size of {size} square feet and a value of {value}. It was built on {built_date}. The roof condition is rated as {roof_condition} and the roof type is {roof_type}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}."
+    messages = [{"role": "Real Estate Agent", "content":f"The property has a size of {size} square feet and a value of {value}. It was built on {built_date}. The roof condition is rated as {roof_condition} and the roof type is {roof_type}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. Generate an environmental report based off of this context."}]
 
     # Generate the report using the GPT-3 model
-    response = openai.Completion.create(
-      engine="text-davinci-003",
-      prompt=context + "\n\nGenerate an environmental impact report:",
+    response = openai.ChatCompletion.create(
+      model="gpt-3.5-turbo",
+      messages=messages,
       temperature=0.5,
       max_tokens=500
     )
 
     return response.choices[0].text.strip()
-
 
 def generateNarrative():
     pass
