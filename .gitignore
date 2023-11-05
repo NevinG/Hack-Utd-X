@@ -11,3 +11,4 @@ vite.config.ts.timestamp-*
 authenticationKey.json
 yolov8x-seg.pt
 apikey.py
+__pycache__
