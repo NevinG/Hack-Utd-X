@@ -49,8 +49,14 @@ def get_user():
                 "exists": True,
                 "user": user
             }
+        
         else:
-            return {"exists": False}
+            user = usersRef.document("test").get()
+            user = user.to_dict()
+            return {
+                "exists": True,
+                "user": user
+            }
     
     except Exception as error:
         print(error)
