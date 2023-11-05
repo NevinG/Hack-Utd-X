@@ -39,6 +39,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"firebase": "^10.5.2"
+		"firebase": "^10.5.2",
+		"unplugin-icons": "^0.17.3"
 	}
 }
