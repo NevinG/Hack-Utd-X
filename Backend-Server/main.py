@@ -41,6 +41,201 @@ def check_auth():
     return uid
 
 
+# JAYESH PLEASE MAKE THIS FUNCTION WORK
+# You give it a property, it returns the correct value
+def predict_condition(property):
+    return {}
+
+
+# JAYESH PLEASE MAKE THIS FUNCTION WORK
+# You give it a property, it returns the correct value
+def predict_value_over_time(property):
+    return {}
+
+
+model = YOLO("yolov8x-seg.pt")  # load instance segmentation model
+
+
+# Load the data
+def load_data_from_firestore(collection_name):
+    # Get a reference to the collection
+    collection_ref = db.collection(collection_name)
+
+    # Get all the documents in the collection
+    docs = collection_ref.stream()
+
+    # Convert the documents into a list of dictionaries
+    data = [doc.to_dict() for doc in docs]
+
+    # Convert the list of dictionaries into a DataFrame
+    df = pd.DataFrame(data)
+
+    return df
+
+
+def conditionPrediction(data):
+    # Decision Tree Algorithm
+    # Preprocess the data
+    data = load_data_from_firestore("Collection_Name")
+    data["built-date"] = pd.to_datetime(data["built-date"]).astype(int) / 10**9
+    data["defect-log"] = LabelEncoder().fit_transform(data["defect-log"])
+    data["maintenance-log"] = LabelEncoder().fit_transform(data["maintenance-log"])
+    data["renovation-log"] = LabelEncoder().fit_transform(data["renovation-log"])
+    data["roof"] = LabelEncoder().fit_transform(data["roof"])
+
+    # Convert 'condition' from numerical to categorical
+    bins = [0, 20, 40, 60, 80, 100]
+    labels = ["bad", "poor", "moderate", "good", "great"]
+    data["condition"] = pd.cut(data["condition"], bins=bins, labels=labels)
+
+    # Assume 'name' is a column in your data
+    if "name" in data:
+        X = data.drop(["condition", "name"], axis=1)  # Keep name out of features
+    else:
+        X = data.drop("condition", axis=1)  # No name in the data
+        print("Warning: 'name' column not found in the data.")
+
+    y = data["condition"]
+
+    # Split the data into training and validation sets
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    # Keep the asset names for the validation set to pair with predictions
+    if "name" in data:
+        names_val = data.loc[X_val.index, "name"]
+
+    # Initialize the Decision Tree Classifier
+    dt = DecisionTreeClassifier(max_depth=10)
+
+    # Fit the model with the training data
+    dt.fit(X_train, y_train)
+
+    # Predict the conditions on the validation set
+    predictions = dt.predict(X_val)
+
+    # Evaluate the model
+    accuracy = accuracy_score(y_val, predictions)
+    print(f"Validation Accuracy: {accuracy}")
+
+    # Pair each prediction with the corresponding asset name
+    if "name" in data:
+        prediction_output = pd.DataFrame(
+            {"Asset Name": names_val, "Predicted Condition": predictions}
+        )
+    else:
+        prediction_output = pd.DataFrame({"Predicted Condition": predictions})
+
+    return dt, prediction_output
+
+
+def valuePredictionOverTime(data):
+    # Random Forest Regression
+    # Preprocess the data
+    data["built-date"] = pd.to_datetime(data["built-date"]).astype(int) / 10**9
+    data["defect-log"] = LabelEncoder().fit_transform(data["defect-log"])
+    data["maintenance-log"] = LabelEncoder().fit_transform(data["maintenance-log"])
+    data["renovation-log"] = LabelEncoder().fit_transform(data["renovation-log"])
+    data["roof"] = LabelEncoder().fit_transform(data["roof"])
+
+    # Assume 'name' is a column in your data
+    if "name" in data:
+        X = data.drop(["value", "name"], axis=1)  # Keep name out of features
+    else:
+        X = data.drop("value", axis=1)  # No name in the data
+        print("Warning: 'name' column not found in the data.")
+
+    y = data["value"]
+
+    # Split the data into training and validation sets
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    # Initialize the Random Forest Regressor
+    rf = RandomForestRegressor(n_estimators=100, random_state=42)
+
+    # Fit the model with the training data
+    rf.fit(X_train, y_train)
+
+    # Predict the values on the validation set
+    predictions = rf.predict(X_val)
+
+    # Evaluate the model
+    mse = mean_squared_error(y_val, predictions)
+    print(f"Mean Squared Error: {mse}")
+
+    # Pair each prediction with the corresponding asset name
+    if "name" in data:
+        prediction_output = pd.DataFrame(
+            {
+                "Asset Name": data.loc[X_val.index, "name"],
+                "Predicted Value": predictions,
+            }
+        )
+    else:
+        prediction_output = pd.DataFrame({"Predicted Value": predictions})
+
+    return rf, prediction_output
+
+
+openai.api_key = "_____________"
+
+
+def get_environmental_report(property):
+    # Extract relevant information from the property
+    size = property["sq-ft"]
+    value = property["value"]
+    built_date = property["built-date"]
+    renovation_log = property["renovation-log"]
+    # roof_condition = property["roof"]["condition"]
+    # roof_type = property["roof"]["type"]
+    assets = property["assets"]
+
+    # Prepare the context for the GPT-3 model
+    messages = [
+        {
+            "role": "user",
+            "content": f"The property has a size of {size} square feet and a value of {value}. It was built on {built_date}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. Generate a report based off of this context that accurately details the potential environmental impacts on this property.",
+        }
+    ]
+
+    # Generate the report using the GPT-3 model
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo", messages=messages, temperature=0.5, max_tokens=500
+    )
+
+    return {"message": response.choices[0].text.strip()}
+
+
+def get_narrative(property):
+    size = property["sq-ft"]
+    value = property["value"]
+    built_date = property["built-date"]
+    renovation_log = property["renovation-log"]
+    defect_log = property["default-log"]
+    # roof_condition = property["roof"]["condition"]
+    # roof_type = property["roof"]["type"]
+
+    assets = property["assets"]
+
+    # Prepare the context for the GPT-3 model
+    messages = [
+        {
+            "role": "user",
+            "content": f"Play the role of a real estate expert to provide insight to real estate professionals. The property has a size of {size} square feet and a value of {value} in dollars. It was built on {built_date}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. The default log is {defect_log} Generate a narrative that accurately summarizes the condition and how it compares (or would compare) to similar properties on the market",
+        }
+    ]
+
+    # Generate the report using the GPT-3 model
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo", messages=messages, temperature=0.5, max_tokens=500
+    )
+
+    return {"message": response.choices[0].text.strip()}
+
+
 # Checks if user is authenticated
 @app.route("/user", methods=["GET"])
 @cross_origin()
@@ -54,18 +249,12 @@ def get_user():
         user = usersRef.document(uid).get()
         if user.exists:
             user = user.to_dict()
-            return {
-                "exists": True,
-                "user": user
-            }
-        
+            return {"exists": True, "user": user}
+
         else:
             user = usersRef.document("test").get()
             user = user.to_dict()
-            return {
-                "exists": True,
-                "user": user
-            }
+            return {"exists": True, "user": user}
     except Exception as error:
         print(error)
         return {"Error": "Error"}, 400
@@ -87,7 +276,7 @@ def post_user():
     except Exception as error:
         print(error)
         return {"Error": "Error"}, 400
-    
+
 
 @app.route("/get_predict_condition", methods=["GET"])
 @cross_origin()
@@ -99,11 +288,12 @@ def get_predict_condition():
         property = request.json
         data = predict_condition(property)
         return data
-    
+
     except Exception as error:
         print(error)
         return {"Error": "Error"}, 400
-    
+
+
 @app.route("/get_predict_value_over_time", methods=["GET"])
 @cross_origin()
 def get_predict_value_over_time():
@@ -114,27 +304,29 @@ def get_predict_value_over_time():
         property = request.json
         data = predict_value_over_time(property)
         return data
-    
+
     except Exception as error:
         print(error)
         return {"Error": "Error"}, 400
-    
-@app.route("/get_calculate_enviornmental_report", methods=["GET"])
+
+
+@app.route("/get_environmental_report", methods=["GET"])
 @cross_origin()
-def get_calculate_enviornmental_report():
+def get_calculate_environmental_report():
     uid = check_auth()
     if uid == "":
         return {"Error": "Error"}, 400
     try:
         property = request.json
-        data = calculate_enviornmental_report(property)
+        data = get_environmental_report(property)
         return data
-    
+
     except Exception as error:
         print(error)
         return {"Error": "Error"}, 400
-    
-@app.route("/get_calculate_narrative", methods=["GET"])
+
+
+@app.route("/get_narrative", methods=["GET"])
 @cross_origin()
 def get_calculate_narrative():
     uid = check_auth()
@@ -142,39 +334,12 @@ def get_calculate_narrative():
         return {"Error": "Error"}, 400
     try:
         property = request.json
-        data = calculate_narrative(property)
+        data = get_narrative(property)
         return data
-    
+
     except Exception as error:
         print(error)
         return {"Error": "Error"}, 400
-    
-    
-#JAYESH PLEASE MAKE THIS FUNCTION WORK
-#You give it a property, it returns the correct value
-def predict_condition(property):
-
-    return {}
-
-#JAYESH PLEASE MAKE THIS FUNCTION WORK
-#You give it a property, it returns the correct value
-def predict_value_over_time(property):
-
-    return {}
-
-#JAYESH PLEASE MAKE THIS FUNCTION WORK
-#You give it a property, it returns the correct value
-def calculate_enviornmental_report(property):
-
-    return {}
-
-#JAYESH PLEASE MAKE THIS FUNCTION WORK
-#You give it a property, it returns the correct value
-def calculate_narrative(property):
-
-    return {}
-
-model = YOLO("yolov8x-seg.pt")  # load instance segmentation model
 
 
 @app.route("/predict", methods=["POST"])
@@ -218,175 +383,6 @@ def predict():
     base64_img = base64.b64encode(io_buf.getvalue()).decode("utf-8")
 
     return jsonify({"image": split_string[0] + "," + base64_img})
-
-# Load the data
-def load_data_from_firestore(collection_name):
-    # Get a reference to the collection
-    collection_ref = db.collection(collection_name)
-
-    # Get all the documents in the collection
-    docs = collection_ref.stream()
-
-    # Convert the documents into a list of dictionaries
-    data = [doc.to_dict() for doc in docs]
-
-    # Convert the list of dictionaries into a DataFrame
-    df = pd.DataFrame(data)
-
-    return df
-
-def conditionPrediction(data):
-    # Decision Tree Algorithm
-    # Preprocess the data
-    data = load_data_from_firestore("Collection_Name")
-    data['built-date'] = pd.to_datetime(data['built-date']).astype(int) / 10**9
-    data['defect-log'] = LabelEncoder().fit_transform(data['defect-log'])
-    data['maintenance-log'] = LabelEncoder().fit_transform(data['maintenance-log'])
-    data['renovation-log'] = LabelEncoder().fit_transform(data['renovation-log'])
-    data['roof'] = LabelEncoder().fit_transform(data['roof'])
-
-    # Convert 'condition' from numerical to categorical
-    bins = [0, 20, 40, 60, 80, 100]
-    labels = ['bad', 'poor', 'moderate', 'good', 'great']
-    data['condition'] = pd.cut(data['condition'], bins=bins, labels=labels)
-
-    # Assume 'name' is a column in your data
-    if 'name' in data:
-        X = data.drop(['condition', 'name'], axis=1)  # Keep name out of features
-    else:
-        X = data.drop('condition', axis=1)  # No name in the data
-        print("Warning: 'name' column not found in the data.")
-
-    y = data['condition']
-
-    # Split the data into training and validation sets
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # Keep the asset names for the validation set to pair with predictions
-    if 'name' in data:
-        names_val = data.loc[X_val.index, 'name']
-
-    # Initialize the Decision Tree Classifier
-    dt = DecisionTreeClassifier(max_depth=10)
-
-    # Fit the model with the training data
-    dt.fit(X_train, y_train)
-
-    # Predict the conditions on the validation set
-    predictions = dt.predict(X_val)
-
-    # Evaluate the model
-    accuracy = accuracy_score(y_val, predictions)
-    print(f'Validation Accuracy: {accuracy}')
-
-    # Pair each prediction with the corresponding asset name
-    if 'name' in data:
-        prediction_output = pd.DataFrame({
-            'Asset Name': names_val,
-            'Predicted Condition': predictions
-        })
-    else:
-        prediction_output = pd.DataFrame({
-            'Predicted Condition': predictions
-        })
-
-    return dt, prediction_output
-
-def valuePredictionOverTime(data):
-    # Random Forest Regression
-    # Preprocess the data
-    data['built-date'] = pd.to_datetime(data['built-date']).astype(int) / 10**9
-    data['defect-log'] = LabelEncoder().fit_transform(data['defect-log'])
-    data['maintenance-log'] = LabelEncoder().fit_transform(data['maintenance-log'])
-    data['renovation-log'] = LabelEncoder().fit_transform(data['renovation-log'])
-    data['roof'] = LabelEncoder().fit_transform(data['roof'])
-
-    # Assume 'name' is a column in your data
-    if 'name' in data:
-        X = data.drop(['value', 'name'], axis=1)  # Keep name out of features
-    else:
-        X = data.drop('value', axis=1)  # No name in the data
-        print("Warning: 'name' column not found in the data.")
-
-    y = data['value']
-
-    # Split the data into training and validation sets
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # Initialize the Random Forest Regressor
-    rf = RandomForestRegressor(n_estimators=100, random_state=42)
-
-    # Fit the model with the training data
-    rf.fit(X_train, y_train)
-
-    # Predict the values on the validation set
-    predictions = rf.predict(X_val)
-
-    # Evaluate the model
-    mse = mean_squared_error(y_val, predictions)
-    print(f'Mean Squared Error: {mse}')
-
-    # Pair each prediction with the corresponding asset name
-    if 'name' in data:
-        prediction_output = pd.DataFrame({
-            'Asset Name': data.loc[X_val.index, 'name'],
-            'Predicted Value': predictions
-        })
-    else:
-        prediction_output = pd.DataFrame({
-            'Predicted Value': predictions
-        })
-
-    return rf, prediction_output
-
-openai.api_key = '_____________'
-
-def generate_environmental_report(property):
-    # Extract relevant information from the property
-    size = property["sq-ft"]
-    value = property["value"]
-    built_date = property["built-date"]
-    renovation_log = property["renovation-log"]
-    # roof_condition = property["roof"]["condition"]
-    # roof_type = property["roof"]["type"]
-    assets = property["assets"]
-
-    # Prepare the context for the GPT-3 model    
-    messages = [{"role": "user", "content":f"The property has a size of {size} square feet and a value of {value}. It was built on {built_date}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. Generate a report based off of this context that accurately details the potential environmental impacts on this property."}]
-
-    # Generate the report using the GPT-3 model
-    response = openai.ChatCompletion.create(
-      model="gpt-3.5-turbo",
-      messages=messages,
-      temperature=0.5,
-      max_tokens=500
-    )
-
-    return response.choices[0].text.strip()
-
-def generateNarrative(property):
-    size = property["sq-ft"]
-    value = property["value"]
-    built_date = property["built-date"]
-    renovation_log = property["renovation-log"]
-    defect_log = property["default-log"]
-    # roof_condition = property["roof"]["condition"]
-    # roof_type = property["roof"]["type"]
-    
-    assets = property["assets"]
-    
-     # Prepare the context for the GPT-3 model
-    messages = [{"role": "user", "content":f"Play the role of a real estate expert to provide insight to real estate professionals. The property has a size of {size} square feet and a value of {value} in dollars. It was built on {built_date}. The renovation log is as follows: {renovation_log}. The assets of the property include: {assets}. The default log is {defect_log} Generate a narrative that accurately summarizes the condition and how it compares (or would compare) to similar properties on the market" }]
-
-    # Generate the report using the GPT-3 model
-    response = openai.ChatCompletion.create(
-      model="gpt-3.5-turbo",
-      messages=messages,
-      temperature=0.5,
-      max_tokens=500
-    )
-
-    return response.choices[0].text.strip()    
 
 
 if __name__ == "__main__":
