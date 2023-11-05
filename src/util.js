@@ -92,7 +92,7 @@ export async function getData(n = 0) {
 		return;
 	}
 	try {
-		let response = await fetch('http://localhost:3030/user', {
+		let response = await fetch('https://hackutd-2bgtumzaxq-vp.a.run.app/user', {
 			headers: {
 				AuthToken: get(authToken),
 				'Access-Control-Allow-Origin': 'no-cors'

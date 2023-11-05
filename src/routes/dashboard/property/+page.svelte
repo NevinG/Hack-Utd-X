@@ -36,8 +36,10 @@
 		}
 
 		predictCondition = await getPredictCondition($userData.properties[id]);
+		console.log("predict condition: ")
 		console.log(predictCondition);
 
+		console.log("predict value: ")
 		predictValue = await getPredictValueOverTime($userData.properties[id]);
 		console.log(predictValue);
 
