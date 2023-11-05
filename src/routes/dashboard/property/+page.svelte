@@ -36,10 +36,10 @@
 		}
 
 		predictCondition = await getPredictCondition($userData.properties[id]);
-		console.log("predict condition: ")
+		console.log('predict condition: ');
 		console.log(predictCondition);
 
-		console.log("predict value: ")
+		console.log('predict value: ');
 		predictValue = await getPredictValueOverTime($userData.properties[id]);
 		console.log(predictValue);
 
@@ -327,8 +327,8 @@
 			</div>
 		</div>
 		<div class="container">
-			<h1>Condition Report</h1>
-			<p>condition report contents (to be filled)</p>
+			<!-- <h1>Condition Report</h1>
+			<p>condition report contents (to be filled)</p> -->
 			<h1>Environment</h1>
 			<div class="report-container">
 				{#if environmentalReportPromise}
@@ -398,7 +398,7 @@
 		color: white;
 		font-size: 30px;
 	}
-	button:hover{
+	button:hover {
 		cursor: pointer;
 	}
 	h1 {
@@ -416,7 +416,7 @@
 		background-color: rgb(82, 129, 133);
 	}
 	img {
-		max-width: 100%;
+		max-width: 700px;
 	}
 	input {
 		border: none;
@@ -451,7 +451,7 @@
 	img {
 		border-radius: 20px;
 	}
-	.dropdown{
+	.dropdown {
 		overflow: hidden; /* Hide scrollbars */
 	}
 </style>
