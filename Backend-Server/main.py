@@ -11,6 +11,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
 import json
 import pandas as pd
 from flask import Flask, request, jsonify
@@ -192,9 +194,51 @@ def conditionPrediction(data):
 
     return dt, prediction_output
 
-def valuePredictionOverTime():
-    # Multiple Linear/Random Forest Regression
-    pass
+def valuePredictionOverTime(data):
+    # Preprocess the data
+    data['built-date'] = pd.to_datetime(data['built-date']).astype(int) / 10**9
+    data['defect-log'] = LabelEncoder().fit_transform(data['defect-log'])
+    data['maintenance-log'] = LabelEncoder().fit_transform(data['maintenance-log'])
+    data['renovation-log'] = LabelEncoder().fit_transform(data['renovation-log'])
+    data['roof'] = LabelEncoder().fit_transform(data['roof'])
+
+    # Assume 'name' is a column in your data
+    if 'name' in data:
+        X = data.drop(['value', 'name'], axis=1)  # Keep name out of features
+    else:
+        X = data.drop('value', axis=1)  # No name in the data
+        print("Warning: 'name' column not found in the data.")
+
+    y = data['value']
+
+    # Split the data into training and validation sets
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Initialize the Random Forest Regressor
+    rf = RandomForestRegressor(n_estimators=100, random_state=42)
+
+    # Fit the model with the training data
+    rf.fit(X_train, y_train)
+
+    # Predict the values on the validation set
+    predictions = rf.predict(X_val)
+
+    # Evaluate the model
+    mse = mean_squared_error(y_val, predictions)
+    print(f'Mean Squared Error: {mse}')
+
+    # Pair each prediction with the corresponding asset name
+    if 'name' in data:
+        prediction_output = pd.DataFrame({
+            'Asset Name': data.loc[X_val.index, 'name'],
+            'Predicted Value': predictions
+        })
+    else:
+        prediction_output = pd.DataFrame({
+            'Predicted Value': predictions
+        })
+
+    return rf, prediction_output
 
 
 def generateNarrative():
