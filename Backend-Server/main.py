@@ -40,18 +40,41 @@ def check_auth():
     uid = decoded_token["uid"]
     return uid
 
-
-# JAYESH PLEASE MAKE THIS FUNCTION WORK
 # You give it a property, it returns the correct value
+# conditionPrediction
 def predict_condition(property):
-    return {}
+    # Load the trained model
+    dt, _ = conditionPrediction(load_data_from_firestore("Collection_Name"))
 
+    # Preprocess the property
+    property["built-date"] = pd.to_datetime(property["built-date"]).astype(int) / 10**9
+    property["defect-log"] = LabelEncoder().fit_transform([property["defect-log"]])
+    property["maintenance-log"] = LabelEncoder().fit_transform([property["maintenance-log"]])
+    property["renovation-log"] = LabelEncoder().fit_transform([property["renovation-log"]])
+    property["roof"] = LabelEncoder().fit_transform([property["roof"]])
 
-# JAYESH PLEASE MAKE THIS FUNCTION WORK
+    # Predict the condition
+    prediction = dt.predict([property])
+
+    return prediction[0]
+
 # You give it a property, it returns the correct value
+# valuePredictionOverTime
 def predict_value_over_time(property):
-    return {}
+    # Load the trained model
+    rf, _ = valuePredictionOverTime(load_data_from_firestore("Collection_Name"))
 
+    # Preprocess the property
+    property["built-date"] = pd.to_datetime(property["built-date"]).astype(int) / 10**9
+    property["defect-log"] = LabelEncoder().fit_transform([property["defect-log"]])
+    property["maintenance-log"] = LabelEncoder().fit_transform([property["maintenance-log"]])
+    property["renovation-log"] = LabelEncoder().fit_transform([property["renovation-log"]])
+    property["roof"] = LabelEncoder().fit_transform([property["roof"]])
+
+    # Predict the value
+    prediction = rf.predict([property])
+
+    return prediction[0]
 
 model = YOLO("yolov8x-seg.pt")  # load instance segmentation model
 
@@ -112,12 +135,8 @@ def conditionPrediction(data):
     # Fit the model with the training data
     dt.fit(X_train, y_train)
 
-    # Predict the conditions on the validation set
-    predictions = dt.predict(X_val)
-
-    # Evaluate the model
-    accuracy = accuracy_score(y_val, predictions)
-    print(f"Validation Accuracy: {accuracy}")
+    # Predict the conditions on the training set
+    predictions = dt.predict(X_train)
 
     # Pair each prediction with the corresponding asset name
     if "name" in data:
@@ -160,7 +179,7 @@ def valuePredictionOverTime(data):
     rf.fit(X_train, y_train)
 
     # Predict the values on the validation set
-    predictions = rf.predict(X_val)
+    predictions = rf.predict(X_train)
 
     # Evaluate the model
     mse = mean_squared_error(y_val, predictions)
