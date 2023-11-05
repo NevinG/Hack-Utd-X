@@ -100,10 +100,6 @@
 </script>
 
 <svelte:head>
-	<link
-		href="https://fonts.googleapis.com/css?family=Roboto:regular,black&display=swap"
-		rel="stylesheet"
-	/>
 	<title>Asset Visualizer</title>
 	{#if mounted}
 		<script src={AFrameUrl} on:load={onLibraryLoad}></script>
