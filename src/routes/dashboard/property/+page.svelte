@@ -1,23 +1,33 @@
 <script>
-	export let data;
-
 	import { userData } from '../../../store';
-	import { postData, getEnvironmentalReport, getPredictCondition, getPredictValueOverTimer, getNarrative } from '../../../util.js';
+	import {
+		postData,
+		getEnvironmentalReport,
+		getPredictCondition,
+		getPredictValueOverTimer,
+		getNarrative
+	} from '../../../util.js';
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+
+	if (!$page.url.searchParams.has('id')) {
+		throw new Error('You need an id query parameter :c');
+	}
+	const data = { id: $page.url.searchParams.get('id') };
 
 	let assetDropdown = false;
 	let featuresDropdown = false;
 	let defectLogDropdown = false;
 	let rennovationLogDropdown = false;
 
-	let environmentalReport = "";
-	let narrative = "";
+	let environmentalReport = '';
+	let narrative = '';
 
-	for(let i = 0; i < $userData.properties[data.id].assets.length; i++){
+	for (let i = 0; i < $userData.properties[data.id].assets.length; i++) {
 		$userData.properties[data.id].assets[i]['location'] = {
-			"lat": "",
-			"long": "",
-		}
+			lat: '',
+			long: ''
+		};
 	}
 
 	onMount(async () => {
@@ -39,12 +49,29 @@
 		/>
 	</div>
 	<img src="/{$userData.properties[data.id].picture}" alt="commercial real estate property" />
-	<br>
+	<br />
 	<div class="bubble">
-	<div class="bubble-child">Size: <input placeholder="(sq-ft here)" bind:value={$userData.properties[data.id]['sq-ft']} /></div>
-	<div class="bubble-child">Built: <input placeholder="(build date here)" bind:value={$userData.properties[data.id]['built-date']} /></div>
-	<div class="bubble-child">Value: $<input placeholder="(value here)" bind:value={$userData.properties[data.id]['value']} /></div>
-	<div class="bubble-child">Address: $<input placeholder="(address here)" bind:value={$userData.properties[data.id]['address']} /></div>
+		<div class="bubble-child">
+			Size: <input placeholder="(sq-ft here)" bind:value={$userData.properties[data.id]['sq-ft']} />
+		</div>
+		<div class="bubble-child">
+			Built: <input
+				placeholder="(build date here)"
+				bind:value={$userData.properties[data.id]['built-date']}
+			/>
+		</div>
+		<div class="bubble-child">
+			Value: $<input
+				placeholder="(value here)"
+				bind:value={$userData.properties[data.id]['value']}
+			/>
+		</div>
+		<div class="bubble-child">
+			Address: $<input
+				placeholder="(address here)"
+				bind:value={$userData.properties[data.id]['address']}
+			/>
+		</div>
 	</div>
 
 	<div class="container">
@@ -59,41 +86,47 @@
 			{#each $userData.properties[data.id].assets as asset, i}
 				<div style="display: flex; align-items: center;">
 					<div class="bubble">
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							Name: <input
 								placeholder="(name here)"
 								bind:value={$userData.properties[data.id].assets[i]['name']}
 							/>
 						</div>
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							Value: $<input
 								placeholder="(value here)"
 								bind:value={$userData.properties[data.id].assets[i]['value']}
 							/>
 						</div>
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							Description: <input
 								placeholder="(description here)"
 								bind:value={$userData.properties[data.id].assets[i]['description']}
 							/>
 						</div>
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							Latitude: <input
 								placeholder="(lat here)"
 								bind:value={$userData.properties[data.id].assets[i]['location']['lat']}
 							/>
 						</div>
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							Longitude: <input
 								placeholder="(long here)"
 								bind:value={$userData.properties[data.id].assets[i]['location']['long']}
 							/>
 						</div>
 					</div>
-					<button style="height: 50%" on:click={() => {$userData.properties[data.id].assets.splice(i,1); $userData=$userData}}>X</button>
+					<button
+						style="height: 50%"
+						on:click={() => {
+							$userData.properties[data.id].assets.splice(i, 1);
+							$userData = $userData;
+						}}>X</button
+					>
 				</div>
 			{/each}
-			<br/>
+			<br />
 			<button
 				on:click={() => {
 					$userData.properties[data.id].assets.push({
@@ -118,29 +151,35 @@
 			{#each $userData.properties[data.id]['features'] as feature, i}
 				<div style="display: flex; align-items: center;">
 					<div class="bubble">
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							Name: <input
 								placeholder="(name here)"
 								bind:value={$userData.properties[data.id]['features'][i]['name']}
 							/>
 						</div>
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							Type: <input
 								placeholder="(type here)"
 								bind:value={$userData.properties[data.id]['features'][i]['type']}
 							/>
 						</div>
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							Description: <input
 								placeholder="(description here)"
 								bind:value={$userData.properties[data.id]['features'][i]['description']}
 							/>
 						</div>
 					</div>
-					<button style="height: 50%" on:click={() => {$userData.properties[data.id]['features'].splice(i,1); $userData=$userData}}>X</button>
+					<button
+						style="height: 50%"
+						on:click={() => {
+							$userData.properties[data.id]['features'].splice(i, 1);
+							$userData = $userData;
+						}}>X</button
+					>
 				</div>
 			{/each}
-			<br/>
+			<br />
 			<button
 				on:click={() => {
 					$userData.properties[data.id]['features'].push({
@@ -166,29 +205,35 @@
 			{#each $userData.properties[data.id]['defect-log'] as defectLog, i}
 				<div style="display: flex; align-items: center;">
 					<div class="bubble">
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							<input
 								placeholder="(description here)"
 								bind:value={$userData.properties[data.id]['defect-log'][i]['description']}
 							/>
 						</div>
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							<input
 								placeholder="(date here)"
 								bind:value={$userData.properties[data.id]['defect-log'][i]['date']}
 							/>
 						</div>
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							$<input
 								placeholder="(repair cost here)"
 								bind:value={$userData.properties[data.id]['defect-log'][i]['repair-cost']}
 							/>
 						</div>
 					</div>
-					<button style="height: 50%" on:click={() => {$userData.properties[data.id]['defect-log'].splice(i,1); $userData=$userData}}>X</button>
+					<button
+						style="height: 50%"
+						on:click={() => {
+							$userData.properties[data.id]['defect-log'].splice(i, 1);
+							$userData = $userData;
+						}}>X</button
+					>
 				</div>
 			{/each}
-			<br/>
+			<br />
 			<button
 				on:click={() => {
 					$userData.properties[data.id]['defect-log'].push({
@@ -213,29 +258,35 @@
 			{#each $userData.properties[data.id]['renovation-log'] as renovationLog, i}
 				<div style="display: flex; align-items: center;">
 					<div class="bubble">
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							<input
 								placeholder="(description)"
 								bind:value={$userData.properties[data.id]['renovation-log'][i]['description']}
 							/>
 						</div>
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							<input
 								placeholder="(date)"
 								bind:value={$userData.properties[data.id]['renovation-log'][i]['date']}
 							/>
 						</div>
-						<div class = "bubble-child">
+						<div class="bubble-child">
 							$<input
 								placeholder="(cost)"
 								bind:value={$userData.properties[data.id]['renovation-log'][i]['cost']}
 							/>
 						</div>
 					</div>
-					<button style="height: 50%" on:click={() => {$userData.properties[data.id]['renovation-log'].splice(i,1); $userData=$userData}}>X</button>
+					<button
+						style="height: 50%"
+						on:click={() => {
+							$userData.properties[data.id]['renovation-log'].splice(i, 1);
+							$userData = $userData;
+						}}>X</button
+					>
 				</div>
 			{/each}
-			<br/>
+			<br />
 			<button
 				on:click={() => {
 					$userData.properties[data.id]['renovation-log'].push({
@@ -260,20 +311,20 @@
 </div>
 
 <style>
-	.container{
+	.container {
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		flex-direction: column;
 	}
-	.bubble{
+	.bubble {
 		border-radius: 10px;
 		padding: 25px;
 		margin: 5px;
-		background-color: rgb(82,129,133);
+		background-color: rgb(82, 129, 133);
 	}
-	.bubble-child{
-		background-color: rgb(82,129,133);
+	.bubble-child {
+		background-color: rgb(82, 129, 133);
 	}
 	img {
 		max-width: 100%;
@@ -294,7 +345,7 @@
 		font-weight: bold;
 		text-align: center;
 	}
-	input{
+	input {
 		background-color: transparent;
 		color: white;
 	}
@@ -304,7 +355,7 @@
 		flex-direction: column;
 		align-items: center;
 	}
-	img{
+	img {
 		border-radius: 20px;
 	}
 </style>
