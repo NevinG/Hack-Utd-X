@@ -1,8 +1,14 @@
 import os
 import firebase_admin
+from PIL import Image
+import io
+import base64
+import numpy as np
+from ultralytics import YOLO
+import cv2
 from flask_cors import CORS, cross_origin
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 
 from firebase_admin import credentials, firestore, auth
@@ -59,7 +65,7 @@ def post_user():
     if uid == "":
         return {"Error": "Error"}, 400
     try:
-        #check if user already exists
+        # check if user already exists
         newUser = request.json
         usersRef.document(uid).set(newUser)
         return newUser
@@ -67,6 +73,36 @@ def post_user():
     except Exception as error:
         print(error)
         return {"Error": "Error"}, 400
+    
+model = YOLO('yolov8x-seg.pt')  # load instance segmentation model
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.get_json(force=True)
+    base64_image = data['image']
+    image_data = base64.b64decode(base64_image)
+    image = Image.open(io.BytesIO(image_data))
+    img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+
+    # Predict with the model
+    results = model(img)  # predict on an image
+
+    # Draw bounding boxes on the image
+    for result in results:
+        if result.boxes is not None:
+            for box in result.boxes:
+                cords = box.xyxy[0].tolist()
+                cords = [round(x) for x in cords]
+                cv2.rectangle(img, (cords[0], cords[1]), (cords[2], cords[3]), (0, 255, 0), 2)
+                class_id = result.names[box.cls[0].item()]
+                conf = round(box.conf[0].item(), 2)
+                cv2.putText(img, f'{class_id}: {conf}', (cords[0], cords[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
+
+    # Convert the image with bounding boxes to base64
+    is_success, buffer = cv2.imencode(".png", img)
+    io_buf = io.BytesIO(buffer)
+    base64_img = base64.b64encode(io_buf.getvalue()).decode('utf-8')
+
+    return jsonify({'image': base64_img})
 
 def conditionPrediction():
     # Decision Tree
