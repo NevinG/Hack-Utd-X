@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from 'firebase/auth';
 import { GoogleAuthProvider } from 'firebase/auth';
-import { userData, authToken, anonymousMode } from "./store.js";
+import { userData, authToken, anonymousMode, userExists} from "./store.js";
 import { get } from 'svelte/store'
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -20,9 +20,10 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const provider = new GoogleAuthProvider();
+export let app = initializeApp(firebaseConfig);
+export let auth = getAuth(app);
+export let provider = new GoogleAuthProvider();
+
 
 export const sampleProperty = {
     name: null,
@@ -81,7 +82,7 @@ export const sampleProperty = {
     },
   }
 
-export async function getData() {
+export async function getData(n = 0) {
     await fetchAuthToken();
 
     if(get(authToken) == ''){
@@ -96,6 +97,7 @@ export async function getData() {
             }   
         });
         const user = await response.json();
+        userExists.set(user.exists);
         if(user.exists){
             userData.set(user['user']);
         } else{
@@ -104,9 +106,15 @@ export async function getData() {
         console.log(user);
         return user;
     } catch (error) {
-        setTimeout(() => {
-            getData();
-          }, 200);
+        console.log(n)
+        if(n != 1){
+            if(n == 0)
+                n = 5;
+            n--;
+            setTimeout(() => {
+                getData(n);
+              }, 200);
+        }
         console.log(error);
     }
 }
@@ -116,9 +124,11 @@ export async function postData(){
     console.log("the data to post is:")
     console.log(get(userData))
 
-    if(get(anonymousMode))
-        return
-    
+    if(get(anonymousMode)){
+        console.log("YORUE IN ANONYNOUS MODE, YOU CANNOT POST DATA");
+        return;
+    }
+
     await fetchAuthToken();
 
     if(get(authToken) == ''){
