@@ -87,12 +87,98 @@ def post_user():
     except Exception as error:
         print(error)
         return {"Error": "Error"}, 400
+    
 
+@app.route("/get_predict_condition", methods=["GET"])
+@cross_origin()
+def get_predict_condition():
+    uid = check_auth()
+    if uid == "":
+        return {"Error": "Error"}, 400
+    try:
+        property = request.json
+        data = predict_condition(property)
+        return data
+    
+    except Exception as error:
+        print(error)
+        return {"Error": "Error"}, 400
+    
+@app.route("/get_predict_value_over_time", methods=["GET"])
+@cross_origin()
+def get_predict_value_over_time():
+    uid = check_auth()
+    if uid == "":
+        return {"Error": "Error"}, 400
+    try:
+        property = request.json
+        data = predict_value_over_time(property)
+        return data
+    
+    except Exception as error:
+        print(error)
+        return {"Error": "Error"}, 400
+    
+@app.route("/get_calculate_enviornmental_report", methods=["GET"])
+@cross_origin()
+def get_calculate_enviornmental_report():
+    uid = check_auth()
+    if uid == "":
+        return {"Error": "Error"}, 400
+    try:
+        property = request.json
+        data = calculate_enviornmental_report(property)
+        return data
+    
+    except Exception as error:
+        print(error)
+        return {"Error": "Error"}, 400
+    
+@app.route("/get_calculate_narrative", methods=["GET"])
+@cross_origin()
+def get_calculate_narrative():
+    uid = check_auth()
+    if uid == "":
+        return {"Error": "Error"}, 400
+    try:
+        property = request.json
+        data = calculate_narrative(property)
+        return data
+    
+    except Exception as error:
+        print(error)
+        return {"Error": "Error"}, 400
+    
+    
+#JAYESH PLEASE MAKE THIS FUNCTION WORK
+#You give it a property, it returns the correct value
+def predict_condition(property):
+
+    return {}
+
+#JAYESH PLEASE MAKE THIS FUNCTION WORK
+#You give it a property, it returns the correct value
+def predict_value_over_time(property):
+
+    return {}
+
+#JAYESH PLEASE MAKE THIS FUNCTION WORK
+#You give it a property, it returns the correct value
+def calculate_enviornmental_report(property):
+
+    return {}
+
+#JAYESH PLEASE MAKE THIS FUNCTION WORK
+#You give it a property, it returns the correct value
+def calculate_narrative(property):
+
+    return {}
 
 model = YOLO("yolov8x-seg.pt")  # load instance segmentation model
 
 
 @app.route("/predict", methods=["POST"])
+@cross_origin()
 def predict():
     data = request.get_json(force=True)
     base64_image: str = data["image"]
